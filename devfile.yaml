@@ -1,0 +1,48 @@
+schemaVersion: 2.1.0
+metadata:
+  name: blog
+components:
+  - name: nodejs
+    container:
+      image: registry.redhat.io/devspaces/udi-rhel8:latest
+      endpoints:
+        - exposure: public
+          name: nodejs
+          targetPort: 3000
+          protocol: https
+      memoryLimit: '3Gi'
+      memoryRequest: '3Gi'
+      cpuLimit: '2'
+      cpuRequest: '1'
+      mountSources: true
+      volumeMounts:
+        - name: npm
+          path: /home/user/.npm
+  - name: npm
+    volume:
+      size: 1G
+commands:
+  - id: 1-install
+    exec:
+      label: "Install"
+      component: nodejs
+      workingDir: ${PROJECTS_ROOT}/blog
+      commandLine: "npm install"
+      group:
+        kind: run
+  - id: 2-run
+    exec:
+      label: "Run with auto-refresh"
+      component: nodejs
+      workingDir: ${PROJECTS_ROOT}/blog
+      commandLine: "npm run-script start"
+      group:
+        kind: run
+  - id: 3-dev
+    exec:
+      label: "Run without auto-refresh"
+      component: nodejs
+      workingDir: ${PROJECTS_ROOT}/blogpost
+      commandLine: "npm run-script dev"
+      group:
+        kind: run
