@@ -42,7 +42,7 @@ commands:
     exec:
       label: "Run without auto-refresh"
       component: nodejs
-      workingDir: ${PROJECTS_ROOT}/blogpost
+      workingDir: ${PROJECTS_ROOT}/blog
       commandLine: "npm run-script dev"
       group:
         kind: run
