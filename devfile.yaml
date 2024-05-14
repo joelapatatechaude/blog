@@ -13,7 +13,7 @@ components:
       memoryLimit: '3Gi'
       memoryRequest: '3Gi'
       cpuLimit: '2'
-      cpuRequest: '1'
+      cpuRequest: '0.25'
       mountSources: true
       volumeMounts:
         - name: npm
