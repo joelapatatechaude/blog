@@ -1,6 +1,6 @@
 ---
 title: 'From a laptop centric IDE to project centric IDEs'
-date: '2024-5-13'
+date: '2024-5-20'
 tags: ['openshift', 'dev spaces', 'developer', 'IDE', 'VDI']
 draft: true
 summary: 'In this article I am explaining why organizations should provide project specific IDE to their developers (using for example OpenShift Dev Spaces)'
@@ -10,33 +10,40 @@ Disclaimer: no frogs were hurt in the making of this blog post.
 
 # TL;DR
 
-Developer onboarding, and development activities, are slow down by the defacto approach of a `user centric` IDE: One laptop (or VDI), one IDE.
-Change that paradigm to a `project centric` IDE, and you solve all those problems, break project silos, increase security, standardise environment and more.
+Developer onboarding, and development activities, are slowed down by the defacto approach of a `user centric` IDE:
+One laptop (or VDI), one IDE.
+Change that paradigm to a `project centric` IDE, and you solve all those problems, break project silos, increase security,
+standardise the environment and more.
 Solutions like OpenShift Dev Spaces let's you do that. Just do it.
 
 # Introduction
 
-We, developers, have evolved over the last decades, to use more and more advanced IDEs on our laptop. In my generation, emacs was a
-great option, still used today, probably not by younger generations who will find the like of Eclipse, VSCode, or Intellij more appealing.
-We also evolved in the number of languages, frameworks, libraries, backend services we need to understand, use, and master. In my age,
-being good in one language, say C, C++, or Java was plenty to get any job. Nowadays, the list of technical "must have" and "good to have"
-requirements listed in any job add is insane. The rise of the full stack developer, jack of all trades, master of none. This got even
-more complicated with the microservices architectural style, where microservices are written sometime in different languages, often in different language version,
-using different libraries, in different version, relying on different backend services, also in... different versions. Maintaining a development environment
-on one's laptop, to cater for this diversity has become a time wasting task, that unnecessary add to the mental load
-of developers those days.
+We developers have evolved our practices over the last decades, to use more and more advanced IDEs on our laptop.
+For my generation emacs was a great option, still used today, but probably not by younger generations who will
+find the likes of Eclipse, VSCode, or Intellij more appealing.
+We also evolved in the number of languages, frameworks, libraries, backend services we need to understand, use, and master.
+In the past, being good in one language, say C, C++, or Java was plenty to get any job.
+Nowadays, the list of technical "must have" and "good to have"
+requirements in any job advert is insane. The has led to the rise of the full stack developer, jack of all trades master of none.
+This got even more complicated with the emergence of the microservices architecture pattern,
+where microservices are sometimes written in different languages, often in different language versions,
+using different libraries, also in different versions, relying on different backend services, also in...
+-you guessed it- different versions. Maintaining a development environment
+on one's laptop, to cater for this diversity has become a monumental waste of time, that unnecessarily adds to the mental load
+of developers, in-turn reducing creative bandwidth for higher-order executive problem solving. Do you like fix dependencies and conflicts?
+No-one does.
 
 I believe, we, developers have been the victims of the so called [boiling frog syndrome](https://en.wikipedia.org/wiki/Boiling_frog): A frog dropped inside a pot full
 of safe cold water, which temperature has been increased years after years, without the frog sensing the danger of the water
-temperature raising to boiling level, until it's too late for that poor amphibian.
+temperature raising to boiling level, until that poor amphibian get cooked to death.
 
 <figure>
   {' '}
   <img
-    src="/static/images/devspaces/frog-spa2.webp"
+    src="/static/images/devspaces/frog-spa3.webp"
     alt="Frog having a Spa in a cooking pot"
-    width="400"
-    height="400"
+    width="800"
+    height="460"
   />
 </figure>
 {/* ![frogspa](/static/images/devspaces/frog-spa2.webp) */}
@@ -45,69 +52,118 @@ It's time to get out of this cooking pot before it's too late, and fix that once
 
 # Containers to the rescue?
 
-Containerized technology enjoy a massive grow over the last decade. By encapsulating all the requirements of a given applications
-(think OS, libraries, runtime environment, code), it ensure safe isolation and portability of that application. Unlike Virtual Machine,
-that container is a few order of magnitude faster to start, lighter to store, easier to transport, and agile to work with. It is the
-supporting technology that has enable the rise of microservices. Containers are now so ubiquitous, they became the defacto
+Containerized technology enjoyed a massive grow over the last decade. By encapsulating all the requirements of a given applications
+(think OS, libraries, runtime environment, code), containers ensure safe isolation and portability of that application. Unlike Virtual Machine,
+containers are a few order of magnitude faster to start, lighter to store, easier to transport, and agile to work with. It is the
+supporting technology that has enable the rise of microservices. Containers are now so ubiquitous, they are the defacto
 solution for new project, or solution for legacy project in need of modernisation.
 
 <figure>
   {' '}
   <img
-    src="/static/images/devspaces/frog-container.webp"
+    src="/static/images/devspaces/frog-container2.webp"
     alt="Frog saved by a shipping container"
-    width="400"
-    height="400"
+    width="800"
+    height="460"
   />
 </figure>
 
 {/* ![frogcontainer](/static/images/devspaces/frog-container.webp) */}
 
-This raise the question: If containers are so ubiquitous, if containerized system brings so many benefits, why don't we, developers
+This begs the question: If containers are so ubiquitous, if containerized system brings so many benefits, why don't we, developers
 use a containerized IDE in the first place?
 
 # OpenShift solution
 
-# Benefits of a set of containerized IDEs
+There are several solutions that tackle this problem by leveraging the agility of containers. OpenShift Dev Spaces is one of them. It uses
+two upstream projects:
+
+- [Devfile](devfile.io) Which is an open standard that let's you codify your Developement Environment. Red Hat, IBM, AWS, JetBrains and Gitlab are contributing this this CNCF project.
+- [Eclipse che](https://eclipse.dev/che/) Which provides your IDE in Kubernetes, leveraging Devfiles.
+
+Together this solution provides major benefit I will cover below.
 
 ## IDE as code
 
-The same way containers are codified via Dockerfiles, IDE delivered as containers are codified. This is done in several ways:
+The same way containers are codified via Dockerfiles, Dev Spaces are codified via devfile.yaml. This file typically seats insite your project git repo, but can also
+be hosted in a devfile registry provided by OpenShift Dev Spaces. This file is language and project specific, and lets you, among other things:
 
-- Writing your own image, leveraging an existing one (such as Red Hat Universal Developer Image, which upstream project can be found here https://github.com/devfile/developer-images),
-  or modifing an existing image (such as Red Hat UDI) to add additional requirements
-- Defining sidecar container-components providing additional services for the inner loop development. Think things like databases, webservices, or other CLI tools,
-  really anything that can be containerized.
-- Defining a libraries of command usefull for all developer working on that particular project
+- Define some components (think sidecar containers) providing you with the services (thinkgs DB, queues, CLI tools etc...) required for development purpose
+- Define your library of usefull commands: Those helpers command that developer constantly rely for their work (compile command lines, debugs, test, cleanup and load db etc...)
 
-## One project, one IDE
+You can also tailor the base image used to deliver the workspace (in OpenShift, that's the Red Hat Universal Developer Image, the upstrem project
+can be found [here](https://github.com/devfile/developer-images))
 
-This is maybe the most important benefit. Many developers struggle to maintain their IDE on their laptop, when juggling accross projects, languages, libraries all in different versions.
-By containerising for each project, a project specific IDE, we remove all the mental load of fighting dependencies, version conflicts, upgrade, downgrade etc... This is maybe best illustrated by
-this xkcd comic IMAGE: https://www.explainxkcd.com/wiki/images/c/cb/python_environment.png
+<figure>
+  {' '}
+  <img
+    src="/static/images/devspaces/frog-blueprint2.webp"
+    alt="Frog saved by a shipping container"
+    width="800"
+    height="460"
+  />
+</figure>
 
-## Instant onboarding
+With a codified IDE, you have a standardised development platform across all the devs of a given project. All developers can contribute to this devfile, adding,
+and hence, sharing their best practice.
+
+## One project, one IDE, intant onboarding
+
+This is probably the most important benefit. Most (all?) developers struggle to maintain their IDE on their laptop, when juggling accross projects,
+languages, libraries all in different versions. The amount of time and frustration spend on framework conflicts, setting up a buildtoolchain for a new project,
+and maintaining that, fixing dependency, fighting version conflicts, ading that DB or that message broker to it. That's enough.
+This is maybe best illustrated by this xkcd [comic](https://xkcd.com/1987/)
+
+<figure>
+  {' '}
+  <img
+    src="https://www.explainxkcd.com/wiki/images/c/cb/python_environment.png"
+    alt="Python dependency nightmare"
+    width="800"
+    height="800"
+  />
+</figure>
+
+What's worse? Each git project has typically a lengthy, out-of-date README to help setup the environment. This README is the hing that
+a developer environment should be project specific, it makes perfect sense to containerise it, for each project, right?
+
+## Breaking silos
 
 ## One project-IDE, many developers
 
 ## Security and compliance
 
-By having the code remaining
+# Limitations
 
-# OpenShift Dev Spaces solution
+In all honestly, the only limitations I could find are:
 
-## Limitations
+- native apps, such as the postman app, can't be containerized to run on OpenShift. Only CLI tools, or web based applications can run as side care containers.
+  That covers the majority of devtools in my opinion, as for that postman example, it
+  has a [web based offering](https://identity.getpostman.com/signup) since a while. Alternatives can be used as VSCode extensions
+- VSCode extensions that can be run are available on the [open vsx site](https://open-vsx.org/) It's possible to create a private registry (think disconnected environment) when needed.
+- OpenShift Dev Spaces offers the choice of VSCode and Intellij, with the later in tech preview as of now.
 
 # Conclusion
+
+In this current decade, we are at the intersection of two things:
+
+- developers are in urgent need of better working paradigm
+- the technology has now matured to support this paradigm
+
+It's time to change habits, take a leap frog, and embrace a new and modern way to deliver IDEs. It's time to let that beffy laptop goes away,
+and harvest the power and convenience of containerized platforms such as OpenShift.
 
 <figure>
   {' '}
   <img
-    src="/static/images/devspaces/frog-revolution.webp"
+    src="/static/images/devspaces/frog-revolution3.webp"
     alt="The Frog Revolution"
-    width="400"
-    height="400"
+    width="800"
+    height="460"
   />
 </figure>
 
 {/* ![frogrevolution](/static/images/devspaces/frog-revolution.webp) */}
+Change is hard, change takes time, but ultimatly, once change happens and we look back at the old way to do things, we always
+smile and think "how did we..."... How did we do before audio streaming platform? Ah yes, we had those clunky tapes, then later CDs to carry around with us, life is so convenient those days.
+How did we do before the likes of office 365, google doc etc... Ah yes, we had to burn that DVD, install that software, and upgrade regularly. Live is so convenient those days.
