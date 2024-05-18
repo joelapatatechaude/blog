@@ -1,1 +1,1 @@
-{ "openshift": 1, "dev-spaces": 1, "developer": 1 }
+{ "openshift": 1, "dev-spaces": 1, "developer": 1, "ide": 1, "vdi": 1 }
