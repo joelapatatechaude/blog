@@ -192,7 +192,9 @@ Then you can click on `Generate Discovery ISO`, and then `Download Discovery ISO
 Now, if you have your PXE server ready, you will know what to do next. Otherwise, burning that ISO to a usb key
 and booting from that key will do the trick. I like to use `Fedora Media Writer` for that purpose.
 
-# Storage
+After booting, your node should appear in Host Inventory section and you will be able to continue the installation process
+
+## Storage
 
 When you arrive at the storage section, you will see your main laptop disk. This might be sda or nvme0n1, depending on your
 disk. Just make a not of it, you will need that info for the next section
@@ -202,28 +204,24 @@ disk. Just make a not of it, you will need that info for the next section
   <img src="/static/images/sno-lab/storage.webp" alt="Storage" width="800" height="460" />
 </figure>
 
-# Custom manifests
+## Custom manifests (that's where you will partition your disk)
 
-<figure>
-  {' '}
-  <img
-    src="/static/images/sno-lab/custom-manifests.webp"
-    alt="Custom manifests"
-    width="800"
-    height="460"
-  />
-</figure>
 That bit is important. You typically only have one disk on your laptop, and the OpenShift installer will
 just consume that all disk for the file system, leaving zero storage for your OpenShift workload (Persistent
 Volume / Persistent Volume Claime). This will be very limiting. There are ways to add more disk later:
-* One example I tested, is just to plug a large (128G) USB stick, which is wiped first with the command
-`wipefs -a /dev/sdX` where you need to pick the X value of course. After that, the LVMS operator will
-consume from that USB storage. I would use that if the laptop disk was too small. * Another example I
-tested is to create a large file (this command creates one ~500GB `dd if=/dev/zero of=/blockfile1 bs=50M
-count=10000`) and setup a loop device it with something like `/sbin/losetup /dev/loop1 /blockfile1`.
-Again, the LVMS will be happy to consume that storage.
 
-But the best approach is to get the disk partitioned via a MachineConfig Custome manifests at install time. Simply add this manfests (use either /dev/sda, or /dev/nvme0n1)
+- One example I tested, is just to plug a large (128G) USB stick, which is wiped first with the command
+  `wipefs -a /dev/sdX` where you need to pick the X value of course. After that, the LVMS operator will
+  consume from that USB storage. I would use that if the laptop disk was too small. \* Another example I
+  tested is to create a large file (this command creates one ~500GB `dd if=/dev/zero of=/blockfile1 bs=50M
+count=10000`) and setup a loop device it with something like `/sbin/losetup /dev/loop1 /blockfile1`.
+  Again, the LVMS will be happy to consume that storage.
+
+But the best approach is to get the disk partitioned via a MachineConfig Custome manifests at install time. Simply add the manifest below:
+
+- make sure to use the correct device name, probalby one of `/dev/sda` or `/dev/nvme0n1`, this is visible in the storage section
+- name it something like 98_var_partition.yaml. The first two number (98) will make sure this doesn't run before some machined configuration
+  that should run earlier.
 
 ```yaml
 apiVersion: machineconfiguration.openshift.io/v1
@@ -245,14 +243,119 @@ spec:
               startMiB: 150000
 ```
 
-You will want to make that storage class the default by adding the annotation:
+<figure>
+  {' '}
+  <img
+    src="/static/images/sno-lab/custom-manifests.webp"
+    alt="Custom manifests"
+    width="800"
+    height="460"
+  />
+</figure>
+
+That should be it, you can now review and create your cluster.
+The whole process will take 30 to 60 min. I believe you will get an error until
+you somehow make sure to add the required DNS entry. I am using cloudflare for convenienve, you
+may also use your own DNS server in your lab setup. The two required entries are in my case:
+
+```text
+api.lab.cszevaco.com      A	192.168.1.128
+*.apps.lab.cszevaco.com   A	192.168.1.128
+```
+
+# Post install configuration
+
+## Install the LVMS Operator and LVMCluster
+
+This should be straigthforward
+
+<figure>
+  {' '}
+  <img src="/static/images/sno-lab/lvms.webp" alt="Custom manifests" width="800" height="460" />
+</figure>
+
+For the LVMCluster, the default are fine
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/sno-lab/lvmcluster.webp"
+    alt="Custom manifests"
+    width="800"
+    height="460"
+  />
+</figure>
+
+This will create a lvms-vg1 storage class for you. Happy days
+
+## Update the default storage class
+
+You will need a default storage class for some workload to deploy correctly.
+You only have one storage class, make it the default one by adding this annotation:
 
 ```yaml
 storageclass.kubernetes.io/is-default-class: 'true'
 ```
 
-Final touch, to get ride of this unsecure warning on my browser, this single
+## Trust the CA certificate of your cluster.
+
+To get ride of the insecure warning from the browser, or some cli command, you should trust the CA certificate of the cluster.
+On my linux distribution (Fedora), this single does the job (make sure to be log to your cluster first with the `oc` cli command)
 
 ```bash
 oc get configmap/kube-root-ca.crt -n openshift-service-ca -o jsonpath='{.data.ca\.crt}' | sudo tee /etc/pki/ca-trust/source/anchors/$(uuidgen)-lab-ca.crt > /dev/null && sudo update-ca-trust
+```
+
+A browser restart may be required.
+
+## Enable the image registry
+
+For this installation, the internal image registry is not automatically created. Pretty sure it's due to the lack of storage class, up to now.
+To enable it, just follow the documentation:
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html-single/registry/index#registry-configuring-storage-baremetal_configuring-registry-storage-baremetal
+
+One caveat: the PVC for the image registry requests a RWX (Read Write Many), which our storage class can't provide. For SNO, only RWO (Read Write Once) makes sense anyway.
+So when following the instructions, you will see that the PVC is pending.
+
+<figure>
+  {' '}
+  <img src="/static/images/sno-lab/pending.webp" alt="PVC Pending" width="800" height="460" />
+</figure>
+
+Just delete that PVC, and recreate it (with the exact same name, in the same namespace), using RWO. In addition, you may want to lower
+the size of that PVC (I use 50GB instead of the default 100GB). Adjust based on your use case, and storage capacity.
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/sno-lab/create-pvc.webp"
+    alt="Custom manifests"
+    width="800"
+    height="460"
+  />
+</figure>
+
+## Enabling wifi
+
+I don't think that's possible, I didn't find any hint on how to do that. At this stage, your SNO needs to be attached
+to your router via the ethernet cable. It's a good time to enable Wake on Lan (WOL) on your laptop bios, to be able to start
+your SNO remotly via the so called magic packet. For that I use `sudo ether-wake <the mac address>` and may also have to specify
+the network interface with the `i` option). Shuting down your SNO may also be done via a simple `shutdown now` when you ssh. That will do for a lab
+setup, but not for a real cluster of course.
+
+# Troubleshooting
+
+## Node not showing up in the Host Inventery list after booting.
+
+This may be a network issue, see if you can ssh into that node, and if that node can
+see the internet. Check the logs otherwise.
+
+## My SNO doesn't work anymore after I shut it down, and restarted later
+
+This may be due to a certificate renewal issue.
+Ssh into your node, and run something like:
+
+```bash
+export KUBECONFIG=/etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/lb-int.kubeconfig
+oc get csr -o name | xargs oc adm certificate approve
 ```
