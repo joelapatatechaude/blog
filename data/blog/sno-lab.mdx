@@ -13,19 +13,20 @@ There are multiple ways to achieve that, one popular approach is to run OpenShif
 which is effectively a minimalistic Single Node OpenShift running in a VM, on your laptop.
 I ran OpenShift Local for a while, but found several limitations I wanted to overcome.
 Another simple way would be to run your own managed OpenShift ROSA or ARO cluster in AWS / Azure,
-probably fine is work funds that, but a bit too pricey for a personal lab setup.
-The option I settled for at the moment is to recycle an old laptop and turn that into a Single Node OpenShift (SNO).
-There are several articles / blogs that deal with this kind of subject.
+probably fine if funded by work, but a bit too pricey for a personal lab setup.
+
+The option I settled for at the moment is to recycle an old laptop and turn it into a Single Node OpenShift (SNO).
+There are several articles / blogs that deal with this kind of lab setup.
 To my knowledge, none of them manage to deal easily with the question of storage. This one does hopefuly.
 So read it, especially the bit about disk partitioning.
 
-<TOCInline toc={props.toc} />
+<TOCInline toc={props.toc} asDisclosure />
 
 # Find the hardware.
 
 A spare laptop with a NIC (usb-c to ethernet is fine), 8vCPU, and 16GB of RAM is enough to get started, though 16vCPU / 32GB will be more comfortable.
 You also need some disk. You probably want 512GB of Disk as a minimum, but you can make it work with say 200GB.
-In most cases, a laptop would have just one disk. By default, the OpenShift Assisted installer will consume the whole disk,
+In most cases, a laptop would have just one disk. By default, the OpenShift Assisted Installer which we will use, consume the whole disk,
 and you have no storage left for your OpenShift cluster itself. There are a couple of ways to try and fix that, we will review them later.
 
 <figure>
@@ -34,9 +35,8 @@ and you have no storage left for your OpenShift cluster itself. There are a coup
 </figure>
 
 In my case, I have an old Lenovo W540 from 2015, it has 8vCPU and 32GB with 512GB SSD disk.
-That’s perfect for a lab SNO. A NIC is also required of course, usb-c to ethernet does fine if your laptop doesn’t have an ethernet port.
-Make sure you take note of your laptop `MAC address` (or your usb-c to ethernet adaptor `MAC address`), you will need it at some point.
-For that, I use the linux command `ifconfig`, there are otherway.
+That’s perfect for a lab SNO. Make sure you take note of your laptop `MAC address` (or your usb-c to ethernet adaptor `MAC address`),
+you will need it at some point. For that, I use the linux command `ifconfig`.
 
 # Create an account on redhat.com
 
@@ -76,8 +76,7 @@ In the first “cluster details” form,
 
 - you give your cluster a name, for example `lab`.
 - You give it a domain name. I happen to own `cszevaco.com`, and can manage DNS via cloudflare. This makes my life easier. Alternatively, you can use any domain
-  as long as you can install / manage / configure some local DNS. I think editing your normal linux computer file `/etc/hosts` would work too, but
-  that's not my recommendation.
+  as long as you can install / manage / configure some local DNS.
   My cluster will be under lab.cszevaco.com, and I will manage a couple of DNS entries via cloudflare.
 - Make sure to check `SNO` for Single Node OpenShift. Otherwise, you will need at least 3 nodes.
 - Make sure to check `Include custom manifests` This will let you add custom kubernetes resource, in particular, MachineConfig resrouces.
@@ -106,8 +105,8 @@ In the first “cluster details” form,
 
 Since I picked `Static IP, bridges and bonds` earlier, I will have to configure some details. You won't if you stick with DHCP.
 
-- For the `DNS`, I typically use `8.8.8.8`. That's because I like google to know what I am doing, and I hope they poke me on Linkedin.
-  You can also use a few other public one, or most likely, the one of router, which for a home router is usually 192.168.1.1
+- For the `DNS`, I typically use `8.8.8.8`. That's because I like google to know what I am doing, and I hope they poke me on Linkedin for a job.
+  You can also use a few other public one, or most likely, the one of your router, which for a home router is usually 192.168.1.1
 - Speaking of which, for the `Machine Network`, just use the network of your router, which typically is `192.168.1.1/24`.
   If you are currently connected to your network, `ifconfig` should return some info that help you understand your network.
 - For the `Default gateway`, again, on a home router, it is often `192.168.1.1`. The linux command `route -n` is useful otherwise.
@@ -141,7 +140,7 @@ In this case, I am going to assign 192.168.1.128 to my SNO
 
 There is a short list of Operators that can be deployed automatically via the Assisted Installer. Operators extend your cluster capacity
 in various way, a bit like your apple or android store let you add apps to your phone. Among the hundreds of
-operators available, currently 4 can be pre-installed. Each of them will increase the "minimum requirements" for your cluster. For
+operators available, currently 4 can be pre-installed through the Assited Installer. Each of them will increase the "minimum requirements" for your cluster. For
 example, if I pick now the LVMS (Logical Volume Manager Storage) which I know I need, I would need my hardware to have one extra vCPU, which
 I don't have. The Assisted Installer will not let me progress when it discovers that my hardware is not enough for 8 + 1 vCPU. So I am not
 ticking it now, but I will install the Operator later anyway when my cluster is running. It will run perfectly fine for a lab environment.
@@ -206,22 +205,26 @@ disk. Just make a not of it, you will need that info for the next section
 
 ## Custom manifests (that's where you will partition your disk)
 
-That bit is important. You typically only have one disk on your laptop, and the OpenShift installer will
-just consume that all disk for the file system, leaving zero storage for your OpenShift workload (Persistent
+That bit is important, and not yet well covered by the interweb. You typically only have one disk on your laptop, and the OpenShift installer will
+just consume that whole disk for the file system, leaving zero storage for your OpenShift workload (Persistent
 Volume / Persistent Volume Claime). This will be very limiting. There are ways to add more disk later:
 
 - One example I tested, is just to plug a large (128G) USB stick, which is wiped first with the command
-  `wipefs -a /dev/sdX` where you need to pick the X value of course. After that, the LVMS operator will
-  consume from that USB storage. I would use that if the laptop disk was too small. \* Another example I
+  `wipefs -a /dev/sdX` where you need to pick the correct X value of course, `sudo fdisk -l` will help identify it.
+  After that, the LVMS operator will
+  consume from that USB storage. I would use that if the laptop disk was too small.
+- Another example I
   tested is to create a large file (this command creates one ~500GB `dd if=/dev/zero of=/blockfile1 bs=50M
 count=10000`) and setup a loop device it with something like `/sbin/losetup /dev/loop1 /blockfile1`.
   Again, the LVMS will be happy to consume that storage.
 
-But the best approach is to get the disk partitioned via a MachineConfig Custome manifests at install time. Simply add the manifest below:
+But the **best** approach is to get the disk partitioned via a MachineConfig Custome manifests at install time. Simply add the manifest below:
 
 - make sure to use the correct device name, probalby one of `/dev/sda` or `/dev/nvme0n1`, this is visible in the storage section
-- name it something like 98_var_partition.yaml. The first two number (98) will make sure this doesn't run before some machined configuration
-  that should run earlier.
+- name it something like 98_var_partition.yaml. The first two number (98) will make sure this doesn't get applied before more critical
+  resource that should get deployed earlier.
+- In this example, the second partition will consume all available space (sizeMiB=0) starting from 150000 MiB (So the first 150000 MiB partition
+  will be the install partition). Simple. I think the minimum is 100GiB, recommendation is 200GiB. I cut the apple in half.
 
 ```yaml
 apiVersion: machineconfiguration.openshift.io/v1
@@ -262,6 +265,18 @@ may also use your own DNS server in your lab setup. The two required entries are
 api.lab.cszevaco.com      A	192.168.1.128
 *.apps.lab.cszevaco.com   A	192.168.1.128
 ```
+
+And on cloudflare, that looks like:
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/sno-lab/dns-cloudflare.webp"
+    alt="Custom manifests"
+    width="800"
+    height="460"
+  />
+</figure>
 
 # Post install configuration
 
@@ -306,13 +321,14 @@ On my linux distribution (Fedora), this single does the job (make sure to be log
 oc get configmap/kube-root-ca.crt -n openshift-service-ca -o jsonpath='{.data.ca\.crt}' | sudo tee /etc/pki/ca-trust/source/anchors/$(uuidgen)-lab-ca.crt > /dev/null && sudo update-ca-trust
 ```
 
-A browser restart may be required.
+A browser restart may be required. On chrome, I bookmarked the handy `chrome://restart` url.
+
+Of course, you can also configure your own certificate, but this post is getting lengthy. Another time.
 
 ## Enable the image registry
 
-For this installation, the internal image registry is not automatically created. Pretty sure it's due to the lack of storage class, up to now.
-To enable it, just follow the documentation:
-https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html-single/registry/index#registry-configuring-storage-baremetal_configuring-registry-storage-baremetal
+For this installation, the internal image registry is not automatically created. Pretty sure it's due to the lack of storage at install time.
+But now that we have a storage class, we can enable the registry. Follow that [doco](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html-single/registry/index#registry-configuring-storage-baremetal_configuring-registry-storage-baremetal).
 
 One caveat: the PVC for the image registry requests a RWX (Read Write Many), which our storage class can't provide. For SNO, only RWO (Read Write Once) makes sense anyway.
 So when following the instructions, you will see that the PVC is pending.
@@ -337,8 +353,9 @@ the size of that PVC (I use 50GB instead of the default 100GB). Adjust based on 
 
 ## Enabling wifi
 
-I don't think that's possible, I didn't find any hint on how to do that. At this stage, your SNO needs to be attached
-to your router via the ethernet cable. It's a good time to enable Wake on Lan (WOL) on your laptop bios, to be able to start
+I don't think that's possible, I didn't find any hint on how to do that so far. With the raise of Edge computing, this will become easy at
+some points. But at this stage, your SNO needs to be attached
+to your router via the ethernet cable afaik. It's a good time to enable Wake on Lan (WOL) on your laptop bios, to be able to start
 your SNO remotly via the so called magic packet. For that I use `sudo ether-wake <the mac address>` and may also have to specify
 the network interface with the `i` option). Shuting down your SNO may also be done via a simple `shutdown now` when you ssh. That will do for a lab
 setup, but not for a real cluster of course.
@@ -359,3 +376,5 @@ Ssh into your node, and run something like:
 export KUBECONFIG=/etc/kubernetes/static-pod-resources/kube-apiserver-certs/secrets/node-kubeconfigs/lb-int.kubeconfig
 oc get csr -o name | xargs oc adm certificate approve
 ```
+
+This topic is well covered in other place of the interweb.
