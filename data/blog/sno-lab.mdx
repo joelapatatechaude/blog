@@ -19,13 +19,7 @@ There are several articles / blogs that deal with this kind of subject.
 To my knowledge, none of them manage to deal easily with the question of storage. This one does hopefuly.
 So read it, especially the bit about disk partitioning.
 
-At a high level:
-
-- Get some hardware
-- Configure some basic cluster settings
-- Configure some networking
-- Pick a few Operators to be deployed automatically
-- Generate an ISO
+<TOCInline toc={props.toc} />
 
 # Find the hardware.
 
@@ -146,16 +140,16 @@ In this case, I am going to assign 192.168.1.128 to my SNO
 ## Operators
 
 There is a short list of Operators that can be deployed automatically via the Assisted Installer. Operators extend your cluster capacity
-in various way, a bit like your apple or android store let's you add app to your phone. Among the hundredes of
-operators available, currently 4 can be pre-installed. We are going to pick the Lobical Volume Manager Storage (lvms)
-as it will provide us with a storage class need to provision persistent volumes. Note that those operator may be installed
-at a later stage too. Some of those operators requires some extra CPU / Memory which could prevent the Assisted Installer
-to proceed further. Best is to just tick the LVMS for now.
+in various way, a bit like your apple or android store let you add apps to your phone. Among the hundreds of
+operators available, currently 4 can be pre-installed. Each of them will increase the "minimum requirements" for your cluster. For
+example, if I pick now the LVMS (Logical Volume Manager Storage) which I know I need, I would need my hardware to have one extra vCPU, which
+I don't have. The Assisted Installer will not let me progress when it discovers that my hardware is not enough for 8 + 1 vCPU. So I am not
+ticking it now, but I will install the Operator later anyway when my cluster is running. It will run perfectly fine for a lab environment.
 
 <figure>
   {' '}
   <img
-    src="/static/images/sno-lab/create-cluster6-lvms.png"
+    src="/static/images/sno-lab/create-cluster6-nolvms.png"
     alt="Operators configuration"
     width="800"
     height="460"
@@ -165,35 +159,57 @@ to proceed further. Best is to just tick the LVMS for now.
 ## Host discovery
 
 The Assisted Installer is now going to wait for nodes to register. To get a node up and running, all you
-have to do is generate the ISO, and boot your laptop with it. When you generate the ISO, make sure to:
-
-- Set the provisioning type to Full Image type
-- Add your ssh public key, in case you ever need to ssh to that node. I like to use `xclip ~/.ssh/id_rsa.pub` to
-  get the content of my key in the clipboard, making it easer to paste.
+have to do is generate the ISO, and boot your laptop with it. First, click on `Addhost`
 
 <figure>
   {' '}
   <img
-    src="/static/images/sno-lab/create-cluster7.webp"
+    src="/static/images/sno-lab/create-cluster-7.webp"
     alt="Host Discovery configuration"
     width="800"
     height="460"
   />
 </figure>
 
+When you generate the ISO, make sure to:
+
+- Set the provisioning type to `Full Image type`
+- Add your ssh public key, in case you ever need to ssh to that node. I like to use `xclip ~/.ssh/id_rsa.pub` to
+  get the content of my public key in the clipboard, making it easer to paste.
+
+<figure>
+  {' '}
+  <img src="/static/images/sno-lab/generate-iso.webp" alt="Generate ISO" width="400" />
+</figure>
+
 Then you can click on `Generate Discovery ISO`, and then `Download Discovery ISO`
 
 <figure>
   {' '}
-  <img src="/static/images/sno-lab/generate-iso.webp" alt="Generate ISO" width="800" height="460" />
+  <img src="/static/images/sno-lab/generate-iso2.webp" alt="Generate ISO" width="400" />
 </figure>
+
+Now, if you have your PXE server ready, you will know what to do next. Otherwise, burning that ISO to a usb key
+and booting from that key will do the trick. I like to use `Fedora Media Writer` for that purpose.
+
+# Storage
 
 <figure>
   {' '}
   <img
-    src="/static/images/sno-lab/generate-iso2.webp"
-    alt="Generate ISO"
+    src="/static/images/sno-lab/create-cluster-7.webp"
+    alt="Host Discovery configuration"
     width="800"
     height="460"
   />
 </figure>
+
+You will want to make that storage class the default by adding the annotation:
+
+```yaml
+storageclass.kubernetes.io/is-default-class: 'true'
+```
+
+```bash
+oc get configmap/kube-root-ca.crt -n openshift-service-ca -o jsonpath='{.data.ca\.crt}' | sudo tee /etc/pki/ca-trust/source/anchors/$(uuidgen)-lab-ca.crt > /dev/null && sudo update-ca-trust
+```
