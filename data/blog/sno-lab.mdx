@@ -194,21 +194,64 @@ and booting from that key will do the trick. I like to use `Fedora Media Writer`
 
 # Storage
 
+When you arrive at the storage section, you will see your main laptop disk. This might be sda or nvme0n1, depending on your
+disk. Just make a not of it, you will need that info for the next section
+
+<figure>
+  {' '}
+  <img src="/static/images/sno-lab/storage.webp" alt="Storage" width="800" height="460" />
+</figure>
+
+# Custom manifests
+
 <figure>
   {' '}
   <img
-    src="/static/images/sno-lab/create-cluster-7.webp"
-    alt="Host Discovery configuration"
+    src="/static/images/sno-lab/custom-manifests.webp"
+    alt="Custom manifests"
     width="800"
     height="460"
   />
 </figure>
+That bit is important. You typically only have one disk on your laptop, and the OpenShift installer will
+just consume that all disk for the file system, leaving zero storage for your OpenShift workload (Persistent
+Volume / Persistent Volume Claime). This will be very limiting. There are ways to add more disk later:
+* One example I tested, is just to plug a large (128G) USB stick, which is wiped first with the command
+`wipefs -a /dev/sdX` where you need to pick the X value of course. After that, the LVMS operator will
+consume from that USB storage. I would use that if the laptop disk was too small. * Another example I
+tested is to create a large file (this command creates one ~500GB `dd if=/dev/zero of=/blockfile1 bs=50M
+count=10000`) and setup a loop device it with something like `/sbin/losetup /dev/loop1 /blockfile1`.
+Again, the LVMS will be happy to consume that storage.
+
+But the best approach is to get the disk partitioned via a MachineConfig Custome manifests at install time. Simply add this manfests (use either /dev/sda, or /dev/nvme0n1)
+
+```yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 98-create-a-partition-for-lvmstorage
+spec:
+  config:
+    ignition:
+      version: 3.4.0
+    storage:
+      disks:
+        - device: /dev/sda
+          partitions:
+            - label: data
+              sizeMiB: 0
+              startMiB: 150000
+```
 
 You will want to make that storage class the default by adding the annotation:
 
 ```yaml
 storageclass.kubernetes.io/is-default-class: 'true'
 ```
+
+Final touch, to get ride of this unsecure warning on my browser, this single
 
 ```bash
 oc get configmap/kube-root-ca.crt -n openshift-service-ca -o jsonpath='{.data.ca\.crt}' | sudo tee /etc/pki/ca-trust/source/anchors/$(uuidgen)-lab-ca.crt > /dev/null && sudo update-ca-trust
