@@ -1,5 +1,7 @@
 {
-  "openshift": 2,
+  "openshift": 3,
+  "mutating-webhook": 1,
+  "cpu-requests": 1,
   "sno": 1,
   "lab": 1,
   "tech-tutorial": 1,
