@@ -174,7 +174,7 @@ Let's get started.
 # 1. Write the http api server.
 
 I am using python because I am not very smart. Bright people should of course use clojure for an extra challenge.
-The code should listen to POST requests on the /mutate path, parse the admissionReviewRequest, and return a ... admissionReviewRequest
+The code should listen to POST requests on the /mutate path, parse the admission, and return a ... admissionReview
 that now include some patch statements. I am using the pydantic python library to parse the json requests, and the pupular fastAPI
 to manage the API requests. Finally, uvicorn as an embedded webserver to serve the requests.
 
@@ -254,3 +254,30 @@ if __name__ == "__main__":
 ```
 
 You can see how to run and test this code in my github project page: https://github.com/joelapatatechaude/mutating-webhook-cpu
+In particular, there is an example folder with some admissionreviewrequest
+
+# 2. Containerize the app
+
+I am using the following containerfile:
+
+```Dockerfile
+FROM registry.redhat.io/ubi9/ubi-minimal
+RUN microdnf install python pip -y
+RUN pip install fastapi uvicorn
+EXPOSE 8000
+
+COPY webhook.py /opt/webhook.py
+CMD python /opt/webhook.py
+```
+
+I am using a Red Hat universal base image - minimal -. It's slim and secured. You might need to create a Red Hat account to access it. It's worth it,
+just read this if you need convincing: https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image
+
+# 3. Deploy that container.
+
+```yaml
+
+```
+
+4. Get some certificate. Those can be injected, so very easy
+5. Configure the webhook with a ValidatingWebhookConfiguration
