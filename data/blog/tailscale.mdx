@@ -7,12 +7,13 @@ thumbnail: '/static/images/devspaces/frog-spa3.webp'
 summary: 'Particularly usefull for home lab OpenShift cluster behind a NAT / firewall, I explain how to get Tailscale to work on your OpenShift cluster'
 ---
 
-Disclaimer: I had no idea how to use Tailscale VPN 2 days ago. It's ridiculously easy.
+Disclaimer: I had no idea how to use Tailscale VPN 2 days ago. It's ridiculously easy!
 
 # TL;DR
 
-Tailscale is becoming incredibly popular as a zero config VPN solution. It's NAT transversal capability make it incredibly easy to
-established a secured connection between two machines, both behind a NAT / firewall. Tailscale released last year a kubernetes operator that
+[Tailscale](https://tailscale.com/) and it's open source counterpart [Headscale](https://github.com/juanfont/headscale)
+are becoming incredibly popular as a zero config VPN solution. Its NAT transversal capability make it incredibly easy to
+established a secured connection between two machines, even when both are behind a NAT / firewall. Tailscale released last year a kubernetes operator that
 make it easy to install and configure on your kubernetes cluster. However, there are a couple of fixes needed to make it OpenShift
 compatible out of the box. Until Tailscale implement those small changes, a couple of hacks are required. I didn't find some satisfactory
 blog or documetation that tackle this, I though this blog post would help the OpenShift community.
@@ -85,8 +86,10 @@ with an error in the container log that would look like:
 mkdir /.config: permission denied
 ```
 
-This kind of issue is typical of running container images that don’t follow OpenShift best security practices. Those practices are explained here: https://developers.redhat.com/articles/2021/11/11/best-practices-building-images-pass-red-hat-container-certification?source=sso#best_practice__3__set_group_ownership_and_file_permissions
-So really, all that is needed is to precreate this /.config directory, and run the chown / chmod commands explained in the articlue. Hopefully Tailscale will eventually implement this, but for the time being, a small hack is required. I went with the
+This kind of issue is typical of running container images that don’t follow OpenShift best security practices.
+Those practices are explained in this [Red Hat best practices for building images article](https://developers.redhat.com/articles/2021/11/11/best-practices-building-images-pass-red-hat-container-certification?source=sso#best_practice__3__set_group_ownership_and_file_permissions)
+So really, all that is needed is to precreate this /.config directory, and run the chown / chmod commands explained in the articlue.
+Hopefully Tailscale will eventually implement this, but for the time being, a small hack is required. I went with the
 option of rebuilding the image implementing Red Hat best security practice:
 
 ### Workaround #1
@@ -129,19 +132,25 @@ The operator should deploy fine now, and you should see a new tailscale-operator
 
 # Using the Tailscale operator.
 
-Once the operator is installed, there are several way you can use it. In my case, I want three things: Have acces to the console, have access to any route exposed, and have access to the API.
+Once the operator is installed, there are several way you can use it. In my case, I want three things:
+
+1. Have acces to the console
+2. have access to any route exposed, and
+3. have access to the API.
+
 Let's see how to achieve that.
 
 ## Accessing the OpenShift console by exposing it's service
 
-It's done quite simply by adding a tailscale annotation into the service. There is a second hack required to get it to work on OpenShift, but first, let's try without
-The OpenShift console service is in the openshift-console namespace. Adding the tailscale annotation can be done via the command line with:
+It's done quite simply by adding a tailscale annotation into the service. There is a second hack required to get it to work on OpenShift, but first, let's try without.
+The OpenShift console service is in the openshift-console namespace. Adding the required tailscale annotation `tailscale.com/expose=true` can be done via the command line with:
 
 ```bash
 oc annotate service console tailscale.com/expose=true -n openshift-console
 ```
 
-Unless it's fixed to work on OpenShift, chances are you will get another crashloop backoff
+Unless it's fixed to work on OpenShift, chances are the statefullset that the Tailscale operator is going to deploy (after adding the annotations)
+will crashloop-backoff
 
 <figure>
   {' '}
@@ -154,8 +163,9 @@ And the container log this time indicate:
 Unable to create tuntap device file: operation not permitted
 ```
 
-This github issue https://github.com/tailscale/tailscale/issues/10814 indicates that the current workaround is to run the tailscale contaienr with privileged mode. To do that,
-we need to create a tailscale proxyClass that let us overide some of the pods settings. For example create a ocp-proxyclass.yaml file
+This github issue https://github.com/tailscale/tailscale/issues/10814 indicates that the current workaround is to run the tailscale contaienr with privileged mode.
+I am pretty sure there should be some more restricitve mode that the blank privileged mode, but for the time being I'll go with that. To achieve this,
+we need to create a tailscale proxyClass that let us overide some of the pods settings. Create a ocp-proxyclass.yaml file with
 
 ### Workaround #2
 
@@ -200,23 +210,33 @@ It may be required to delete the statfulset associated with the service, and let
 If everything goes well:
 
 1. the pod should now be running,
-2. you should see a new machine
+2. you should see a new machine in the Tailscale admin console
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/tailscale/tailscale-with-router-default-machine.webp"
+    alt=""
+    width="800"
+  />
+</figure>
 
 Now, in theory, you could try and use the tailscale magicDNS to connect to the console. In practice, OpenShift console route is running via the HA proxy and is expecting
-to receive http request to a host named ... https://console-openshift-console.apps.<your-cluster-domain> Anything else and it won't be routed to the service.
+to receive http request to a host named ... https://console-openshift-console.apps.your-cluster-domain Anything else and it won't be routed to the service.
 
-Next, you could try to add some DNS entry somewhere to resolve console-openshift-console.apps.<your-cluster-domain> to the tailscale IP address of the openshift-console-console machine. This will work,
-but next OpenShift will want to authenticate you with it's openshift-authentication service / route oauth-openshift.apps.<your-cluster-domain>
-The next step would be to expose that service to tailscale, and make sure the route resolve to the tailscale machine IP of that service. That would work, but there are two inconvenient:
+Next, you could try to add some DNS entry somewhere to resolve console-openshift-console.apps.your-cluster-domain to the tailscale IP address of the openshift-console-console machine. This will work,
+and when connecting to the OpenShift console for the first time, OpenShift will want to authenticate you with it's openshift-authentication service / route oauth-openshift.apps.your-cluster-domain
+The next step would be to expose that service to Tailscale, and make sure the route resolve to the tailscale machine IP of that service.
+That works, but at this stage there are two inconvenient:
 
-- ssl termination on those OpenShift route doens't happen at the service level, it happens at the ha-proxy level
-- I would need to maintain some dns entry for every service I expose, and each service would get a different machine IP on tailscale. Anoying.
+- ssl termination on those OpenShift route doens't happen at the service level, it happens at the ha-proxy level. So my let's encrypt certificate is not in use, and the certificate is not trusted.
+- I would need to maintain some dns entry for every service I expose (console, oauth, and more), and annoyingly, each service would get a different machine IP on tailscale. This add some burden to maintain some dns entry somewhere.
 
 So instead, a more drastic solution, which works fine for home lab setups, is just to expose the OpenShift ha-proxy service on tailscale. Let's see that in action in the next section
 
 ## Accessing any OpenShift route (including console, oauth)
 
-Unless Tailscale fixed the issue, make sure to follow the previous section to add and use a proxyclass, and configure the proxies service account securityContextConstraints.
+Unless Tailscale had fixed this [issue](https://github.com/tailscale/tailscale/issues/10814), make sure to follow the previous section to add and use a proxyclass, and configure the proxies service account securityContextConstraints.
 
 The openshift-ingress namespace contains the router-internal-default service. By exposing this service to tailscale, all the OpenShift route will be accessible. Let's give it a try.
 
@@ -225,7 +245,7 @@ oc label service router-internal-default tailscale.com/proxy-class=ocp -n opensh
 oc annotate service router-internal-default tailscale.com/expose=true -n openshift-ingress
 ```
 
-After that, the tailscale admin console will display a new machine for the router-internal-default service. You can then resolve \*.apps.<your-cluster-domain> to this unique machine / ip address.
+After that, the tailscale admin console will display a new machine for the router-internal-default service. You can then resolve \*.apps.your-cluster-domain to this unique machine / ip address.
 One option is to use /etc/hosts, but it doens't support wildcard, so you will need to add each entry (console, oauth, argocd etc...) independently, albeit against the same IP address.
 If you own the domain you are using, you can also use the dns service with a wildcard domain, albeit you will have to potentially wait for dns propagation when things change.
 Maybe the best option is to configure something like dnsmasq on your laptop, to resolve efficiently the wilddard domain you used, against the tailscale IP address of the router-internal-default service. That's the option
