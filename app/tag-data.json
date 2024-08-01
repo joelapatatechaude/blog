@@ -1,9 +1,11 @@
 {
-  "openshift": 3,
+  "openshift": 4,
+  "tailscale": 1,
+  "vpn": 1,
+  "lab": 2,
   "mutating-webhook": 1,
   "cpu-requests": 1,
   "sno": 1,
-  "lab": 1,
   "tech-tutorial": 1,
   "dev-spaces": 1,
   "developer": 1,
