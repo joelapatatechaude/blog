@@ -16,7 +16,7 @@ are becoming incredibly popular as a zero config VPN solution. Its NAT transvers
 established a secured connection between two machines, even when both are behind a NAT / firewall. Tailscale released last year a kubernetes operator that
 make it easy to install and configure on your kubernetes cluster. However, there are a couple of fixes needed to make it OpenShift
 compatible out of the box. Until Tailscale implement those small changes, a couple of hacks are required. I didn't find some satisfactory
-blog or documetation that tackle this, I though this blog post would help the OpenShift community.
+blog or documentation that tackle this, I thought this blog post would help the OpenShift community.
 
 At the end of this blog post, you should be able to deploy tailscale, and have access to the api, as well as the OpenShift console.
 You will also be able to expose other services inside your cluster, to your tailscale network.
@@ -34,7 +34,7 @@ You will need to create a tailscale network, attached to an account. I Signed up
   <img src="/static/images/tailscale/tailscale1.webp" alt="" width="589" height="145" />
 </figure>
 
-Then there should be some instruction to install tailscale on your first machine, your current laptop is a good place to start.
+Then there should be some instructions to install tailscale on your first machine, your current laptop is a good place to start.
 
 <figure>
   {' '}
@@ -44,14 +44,14 @@ Then there should be some instruction to install tailscale on your first machine
 Just follow those steps. Once you have access to the tailscale console, you will need to complete two kubernetes prerequisites,
 as explained here: https://tailscale.com/kb/1236/kubernetes-operator#prerequisites :
 
-1. Configure some kubernetes ACL tags, this link should bring you to the right location in the tailscale admin consoel: https://login.tailscale.com/admin/acls/file In the doc, they omit the required comma `,` at the end, make sure you add it:
+1. Configure some kubernetes ACL tags, this link should bring you to the right location in the tailscale admin console: https://login.tailscale.com/admin/acls/file In the doc, they omit the required comma `,` at the end, make sure you add it:
 
 <figure>
   {' '}
   <img src="/static/images/tailscale/tailscale-acl-comma.webp" alt="" width="324" />
 </figure>
 
-2. Configure an oauth client, and get a client ID / Secret. This link should bring you at the right place. https://login.tailscale.com/admin/settings/oauth Store the clientID / secret somewhere, you will need it later.
+2. Configure an oauth client, and get a client ID / Secret. This link should bring you to the right place. https://login.tailscale.com/admin/settings/oauth Store the clientID / secret somewhere, you will need it later.
 
 <figure>
   {' '}
@@ -60,7 +60,7 @@ as explained here: https://tailscale.com/kb/1236/kubernetes-operator#prerequisit
 
 ## Tailscale operator for kubernetes
 
-There is an operator deployable via helm. Finger cross this operator will eventually find it's way in the OpenShift Operator Hub. For the time being, a manual helm install is required.
+There is an operator deployable via helm. Finger crossed this operator will eventually find its way in the OpenShift Operator Hub. For the time being, a manual helm install is required.
 At the time of writing, the container image of that Operator (v1.70.0) doesn't meet the OpenShift security requirement, and a small hack is required. Let's get started.
 
 This section documentation gives you some indication on how to install the operator with helm. https://tailscale.com/kb/1236/kubernetes-operator#helm
@@ -88,8 +88,8 @@ mkdir /.config: permission denied
 
 This kind of issue is typical of running container images that don’t follow OpenShift best security practices.
 Those practices are explained in this [Red Hat best practices for building images article](https://developers.redhat.com/articles/2021/11/11/best-practices-building-images-pass-red-hat-container-certification?source=sso#best_practice__3__set_group_ownership_and_file_permissions)
-So really, all that is needed is to precreate this /.config directory, and run the chown / chmod commands explained in the articlue.
-Hopefully Tailscale will eventually implement this, but for the time being, a small hack is required. I went with the
+So really, all that is needed is to precreate this /.config directory, and run the chown / chmod commands explained in the article.
+Hopefully Tailscale will eventually implement [this](https://github.com/tailscale/tailscale/issues/10638#issuecomment-2264417361), but for the time being, a small hack is required. I went with the
 option of rebuilding the image implementing Red Hat best security practice:
 
 ### Workaround #1
@@ -107,7 +107,7 @@ USER 1001
 And push it to a container registry. If you trust me (should you?), you could use mine: quay.io/rh_ee_cschmitz/tailscale-ocp-k8s-operator:v1.70.0 but really, don’t use my image, who knows what’s inside apart for me?
 Besides, mine is for v1.70.0, and the Tailscale project is moving quickly...
 
-Using that modified image with the helm chart is quite simple, it just needs two extra arg to overwirte the imag repo and image tag (adjust with your image / tag of course, unless you trust me):
+Using that modified image with the helm chart is quite simple, it just needs two extra arg to overwrite the image repo and image tag (adjust with your image / tag of course, unless you trust me):
 
 ```bash
 helm upgrade \
@@ -132,9 +132,9 @@ The operator should deploy fine now, and you should see a new tailscale-operator
 
 # Using the Tailscale operator.
 
-Once the operator is installed, there are several way you can use it. In my case, I want three things:
+Once the operator is installed, there are several ways you can use it. In my case, I want three things:
 
-1. Have acces to the console
+1. Have access to the console
 2. have access to any route exposed, and
 3. have access to the API.
 
@@ -163,13 +163,13 @@ And the container log this time indicate:
 Unable to create tuntap device file: operation not permitted
 ```
 
-This github issue https://github.com/tailscale/tailscale/issues/10814 indicates that the current workaround is to run the tailscale contaienr with privileged mode.
-I am pretty sure there should be some more restricitve mode that the blank privileged mode, but for the time being I'll go with that. To achieve this,
-we need to create a tailscale proxyClass that let us overide some of the pods settings. Create a ocp-proxyclass.yaml file with
+This github issue https://github.com/tailscale/tailscale/issues/10814 indicates that the current workaround is to run the tailscale operator container with privileged mode.
+I am pretty sure there should be some more restrictive mode than the blank privileged mode, but for the time being I'll go with that. To achieve this,
+we need to create a tailscale proxyClass that let's us overide some of the containers settings. Create a ocp-proxyclass.yaml file with
 
 ### Workaround #2
 
-Until tailscale fixe the issue, run the container in privileged mode.
+Until tailscale fixes the issue, run the container in privileged mode using a proxy class.
 
 ```YAML
 apiVersion: tailscale.com/v1alpha1
@@ -222,23 +222,23 @@ If everything goes well:
 </figure>
 
 Now, in theory, you could try and use the tailscale magicDNS to connect to the console. In practice, OpenShift console route is running via the HA proxy and is expecting
-to receive http request to a host named ... https://console-openshift-console.apps.your-cluster-domain Anything else and it won't be routed to the service.
+to receive https requests to a host named ... https://console-openshift-console.apps.your-cluster-domain Anything else and it won't be routed to the service.
 
 Next, you could try to add some DNS entry somewhere to resolve console-openshift-console.apps.your-cluster-domain to the tailscale IP address of the openshift-console-console machine. This will work,
 and when connecting to the OpenShift console for the first time, OpenShift will want to authenticate you with it's openshift-authentication service / route oauth-openshift.apps.your-cluster-domain
 The next step would be to expose that service to Tailscale, and make sure the route resolve to the tailscale machine IP of that service.
 That works, but at this stage there are two inconvenient:
 
-- ssl termination on those OpenShift route doens't happen at the service level, it happens at the ha-proxy level. So my let's encrypt certificate is not in use, and the certificate is not trusted.
-- I would need to maintain some dns entry for every service I expose (console, oauth, and more), and annoyingly, each service would get a different machine IP on tailscale. This add some burden to maintain some dns entry somewhere.
+- ssl termination on those OpenShift routes doesn't happen at the service level, it happens at the ha-proxy level. So my let's encrypt certificate is not in use, and the certificate is not trusted.
+- I would need to maintain some dns entry for every service I expose (console, oauth, and more), and annoyingly, each service would get a different machine IP on tailscale. This adds some burden to maintain some dns entry somewhere.
 
 So instead, a more drastic solution, which works fine for home lab setups, is just to expose the OpenShift ha-proxy service on tailscale. Let's see that in action in the next section
 
 ## Accessing any OpenShift route (including console, oauth)
 
-Unless Tailscale had fixed this [issue](https://github.com/tailscale/tailscale/issues/10814), make sure to follow the previous section to add and use a proxyclass, and configure the proxies service account securityContextConstraints.
+Unless Tailscale has fixed this [issue](https://github.com/tailscale/tailscale/issues/10814), make sure to follow the previous section to add and use a proxyclass, and configure the proxies service account securityContextConstraints.
 
-The openshift-ingress namespace contains the router-internal-default service. By exposing this service to tailscale, all the OpenShift route will be accessible. Let's give it a try.
+The openshift-ingress namespace contains the router-internal-default service. By exposing this service to tailscale, all the OpenShift routes will be accessible. Let's give it a try.
 
 ```bash
 oc label service router-internal-default tailscale.com/proxy-class=ocp -n openshift-ingress
@@ -248,15 +248,15 @@ oc annotate service router-internal-default tailscale.com/expose=true -n openshi
 After that, the tailscale admin console will display a new machine for the router-internal-default service. You can then resolve \*.apps.your-cluster-domain to this unique machine / ip address.
 One option is to use /etc/hosts, but it doens't support wildcard, so you will need to add each entry (console, oauth, argocd etc...) independently, albeit against the same IP address.
 If you own the domain you are using, you can also use the dns service with a wildcard domain, albeit you will have to potentially wait for dns propagation when things change.
-Maybe the best option is to configure something like dnsmasq on your laptop, to resolve efficiently the wilddard domain you used, against the tailscale IP address of the router-internal-default service. That's the option
-I went for, and that solve all my problems. Because tls termination happens at the right place, my certificate is correctly used, no issue there neither.
+Maybe the best option is to configure something like dnsmasq on your laptop, to efficiently resolve the wildcard domain you used, against the tailscale IP address of the router-internal-default service. That's the option
+I went for, and that solves all my requirements. Because tls termination happens at the right place, my certificate is correctly used, no issue there neither.
 
-Final step, getting access to the kubernetes API
+Final step, getting access to the kubernetes API...
 
 ## Accessing the kubernetes API.
 
 This is quite easy, all is needed is an extra flag for the helm deployment. I picked the noauth one as I
-am using regular `oc login` to authenticate / authorize. Tailscale instructions are here: https://tailscale.com/kb/1437/kubernetes-operator-api-server-proxy#configuring-api-server-proxy-in-noauth-mode
+am using `oc login` commands to authenticate / authorize. Tailscale instructions are here: https://tailscale.com/kb/1437/kubernetes-operator-api-server-proxy#configuring-api-server-proxy-in-noauth-mode
 
 ```bash
 helm upgrade \
@@ -273,7 +273,7 @@ helm upgrade \
   --wait
 ```
 
-Once this is done, the tailscole operator will restart, it contains the api proxy activated by the previous command.
+Once this is done, the Tailscale operator pod will restart, it contains the api proxy activated by the previous command.
 Connecting to it requires:
 
 - the magicDNS of that machine, available via the tailscale web console
@@ -284,3 +284,10 @@ Something like below should work. Enjoy.
 ```bash
 oc login --web https://tailscale-operator.tailabcde.ts.net:443
 ```
+
+# Conclusion
+
+Tailscale is not that far away from working out of the box on OpenShift. It
+just needs a small update in the Containerfile used to build the image, and a better
+handling of securityContextConstraints / privileged mode. The workaround #1 and #2 should get you started however,
+until those fixes are implemented.
