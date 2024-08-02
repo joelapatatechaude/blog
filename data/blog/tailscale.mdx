@@ -251,4 +251,36 @@ If you own the domain you are using, you can also use the dns service with a wil
 Maybe the best option is to configure something like dnsmasq on your laptop, to resolve efficiently the wilddard domain you used, against the tailscale IP address of the router-internal-default service. That's the option
 I went for, and that solve all my problems. Because tls termination happens at the right place, my certificate is correctly used, no issue there neither.
 
+Final step, getting access to the kubernetes API
+
 ## Accessing the kubernetes API.
+
+This is quite easy, all is needed is an extra flag for the helm deployment. I picked the noauth one as I
+am using regular `oc login` to authenticate / authorize. Tailscale instructions are here: https://tailscale.com/kb/1437/kubernetes-operator-api-server-proxy#configuring-api-server-proxy-in-noauth-mode
+
+```bash
+helm upgrade \
+  --install \
+  tailscale-operator \
+  tailscale/tailscale-operator \
+  --namespace=tailscale \
+  --create-namespace \
+  --set-string oauth.clientId=<OAauth client ID> \
+  --set-string oauth.clientSecret=<OAuth client secret> \
+  --set-string operatorConfig.image.repository=quay.io/rh_ee_cschmitz/tailscale-ocp-k8s-operator \
+  --set-string operatorConfig.image.tag=v1.70.0 \
+  --set-string apiServerProxyConfig.mode="noauth"
+  --wait
+```
+
+Once this is done, the tailscole operator will restart, it contains the api proxy activated by the previous command.
+Connecting to it requires:
+
+- the magicDNS of that machine, available via the tailscale web console
+- that's it, I didn't need bullet points.
+
+Something like below should work. Enjoy.
+
+```bash
+oc login --web https://tailscale-operator.tailabcde.ts.net:443
+```
