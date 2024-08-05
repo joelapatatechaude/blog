@@ -1,19 +1,17 @@
 ---
 title: 'A kubernetes mutating webhook that overrides CPU requests'
-date: '2024-7-25'
+date: '2024-8-6'
 tags: ['openshift', 'mutating-webhook', 'cpu-requests']
 draft: true
 thumbnail: '/static/images/devspaces/frog-spa3.webp'
 summary: 'I am explaining why I wrote a mutating webhook, and how simple it is to do so. A few debunk, and a few tips along the way'
 ---
 
-Disclaimer: This blog post was written in July 2024, yet it does not mention the CrowdStrike / Microsoft worldwide outage.
-
 # TL;DR
 
 If you work with Kubernetes, one day, you will have a use case where you need a way to validate or mutate a k8s resource sent to k8s api,
 before it gets ingested by k8s. In my case, I want to override all pod cpu requests for the needs of my underspeced OpenShift “lab” cluster.
-If you have a similar need, read this post, it will debunk a few assumptions, and give you what you need to get started.
+If you have a need to validate, or mutate a k8s resource on the fly, read this post, it will debunk a few assumptions, and give you what you need to get started.
 Otherwise, just bookmark this blog post and come back when you are ready.
 
 <TOCInline toc={props.toc} asDisclosure />
@@ -98,7 +96,7 @@ The requests receive on the endpoint /mutate/ is a JSON `AdmissionReview`. For a
 }
 ```
 
-If the pod defines a single container, and no initContainer, the respons will look like
+If the pod defines a single container, and no initContainer, the response will look like
 
 ```JSON
 {
@@ -108,23 +106,34 @@ If the pod defines a single container, and no initContainer, the respons will lo
     "uid": "0df28fbd-5f5f-11e8-bc74-36e6bb280816",
     "allowed": true,
     "patchType": "JSONPatch",
-    "patch": [
-      {
-        "op": "add",
-        "path": "/spec/containers/0/resources/requests",
-        "value": {
-          "cpu": "0.001"
-        }
-      }
-    ]
+    "patch": "some-base64-encoded-patch-array"
   }
 }
 ```
 
-# Why writting a cpu request mutating webhook?
+where the `patch` is some base64 encoded patch array that could look like:
 
-<details>
-  <summary>Click to expand if you want to know more about the why. No code in this section</summary>
+```JSON
+[
+  {
+    "op": "add",
+    "path": "/spec/containers/0/resources/requests",
+    "value": {}
+  },
+  {
+    "op": "add",
+    "path": "/spec/containers/0/resources/requests/cpu",
+    "value": "0.001"
+  },
+  {
+    "op": "replace",
+    "path": "/spec/containers/1/resources/requests/cpu",
+    "value": "0.001"
+  }
+]
+```
+
+# Why writting a CPU request mutating webhook to set those CPU requests low?
 
 I am running a small OpenShift Lab cluster, with limited CPU and Memory. Everytime I install an Operator, such as GitOps, ACS, ACM,
 those operators request a certain amount of CPU and Memory for some of it's pod. The request is a guaranteed amount of resource
@@ -132,34 +141,34 @@ for the pod, wether it's actually being used or not. There is a very good reason
 It guarantees that the pods will function correctly under moderate or heavy loads. However, say I have 16 CPU, and after installing
 a few Operators, 16 CPU are already requested, there is no more resource available to schedule new workload with CPU requests, even
 if the cluster is acually iddle, with say just 1 CPU being used. It's very quickly limiting for a "Lab" environment, which is why I wrote
-this admission webhook. In doing so, I am responsable to monitor the CPU usage. Clearly, the mutating webhook will need to be configured
+this admission webhook. In doing so, I am aware I am responsable of closely monitoring CPU usages. Clearly, the mutating webhook will need to be configured
 to ignore certain critical namespaces to protect critical resources such as etcd, api-server.
 
-## Why not editing the deployments, statefullsets, and deamonsets instead?
+## Why not editing the deployments, statefullsets, and deamonsets instead of the pod?
 
 Quite often, those resources are controlled by parent resources, and editing them may not stick. On the other hands, pods are usually
 indirectly created by deployments, statefullsets, and deamonsets. Editing pods on the fly with a mutating webhook is perfectly fine. In fact,
-it's a common strategy used to inject sidecar contaienrs in pod, as done by the Istio operator for example.
+it's a common strategy used to inject sidecar containers in pod, as done by the Istio project for example, that is until this project gets ride
+of sidecars injection in an upcoming version, but you got the idea.
 
 ## Why not using the ClusterResourceOverride operator?
 
 This is a great operator that can mutate the ratio between limits and requests. However, I needed something a bit more aggresive.
 Besides, I anticipate I will need fine grain control at a later stage, and the ClusterResourceOverride only let specify one override resource
-that will be applied to selected namespaces. But different namespace can't have different override resource.
+that will be applied to selected namespaces. But different namespace can't have different override resource. Overall, I'll need more control.
 
 ## How about memory?
 
-Unlike CPU, if a pod doesn't have the minimum requirement memory allocated, it will likely run out of memory. Think for example about a java
+Unlike CPU, if a pod doesn't have the minimum requirement memory allocated, it may run, and later run out of memory, being killed by the OOM killer.
+Think for example about a java
 app with it's heap size requirements. It's much more dangerous to rewrite memory requests on the fly. I will probably do it at some points, but
 I would need to be able to override memory request differently for various containers. A fine grain control I can managed in a later version of
 my webhook.
 
 ## Why not just removing the CPU requests of the pod?
 
-It's probably valide. I guess by seting the request to 0.001, I'll be able to infere that any pod with that value has been mutated by
+It's probably valide. I guess by seting the request to 0.001, I'll be able to infere that any container with that value has been mutated by
 my webhook.
-
-</details>
 
 # Writing and deploying the webhook in 5 easy steps.
 
@@ -171,17 +180,22 @@ my webhook.
 
 Let's get started.
 
-# 1. Write the http api server.
+## 1. Write the http api server.
 
-I am using python because I am not very smart. Bright people should of course use clojure for an extra challenge.
-The code should listen to POST requests on the /mutate path, parse the admission, and return a ... admissionReview
+I am using python because I am not very smart. Bright people should of course use Clojure for an extra challenge. The
+point is, it doesn't have to be written in Go, unlike what some blog post out there seems to imply.
+The code should listen to POST requests on the /mutate path, parse the admission, and return an ... admissionReview
 that now include some patch statements. I am using the pydantic python library to parse the json requests, and the pupular fastAPI
-to manage the API requests. Finally, uvicorn as an embedded webserver to serve the requests.
+to manage the API requests. Finally, uvicorn is used as an embedded webserver to serve the requests, uvicorn seems popular right now.
 
 ```python
-from fastapi import FastAPI, Request
+
+from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
+import json
+import os
+import base64
 
 app = FastAPI()
 
@@ -200,9 +214,24 @@ class AdmissionReviewRequest(BaseModel):
     request: dict
 
 class AdmissionReviewResponse(BaseModel):
+    uid: str
+    allowed: bool
+    patchType: str
+    patch: str
+
+class AdmissionReview(BaseModel):
     apiVersion: str
     kind: str
-    response: dict
+    response: AdmissionReviewResponse
+
+def ensure_path(patch, base_path, keys):
+    for i, key in enumerate(keys):
+        path = f"{base_path}/{'/'.join(keys[:i+1])}"
+        patch.append({
+            "op": "add",
+            "path": path,
+            "value": {}
+        })
 
 @app.post("/mutate")
 async def mutate_pod(admission_review: AdmissionReviewRequest):
@@ -210,53 +239,69 @@ async def mutate_pod(admission_review: AdmissionReviewRequest):
 
     patches = []
 
-    # Function to add patch for a container
-    def add_patch(container, index, container_type):
-        if "requests" not in container.resources:
-            patches.append({
-                "op": "add",
-                "path": f"/spec/{container_type}/{index}/resources/requests",
-                "value": {"cpu": "0.001"}
-            })
-        else:
-            patches.append({
-                "op": "replace" if "cpu" in container.resources["requests"] else "add",
-                "path": f"/spec/{container_type}/{index}/resources/requests/cpu",
-                "value": "0.001"
-            })
-
     # Modify the CPU requests to 0.001 for all containers
     for i, container in enumerate(pod.spec.containers):
-        add_patch(container, i, "containers")
+        base_path = f"/spec/containers/{i}/resources"
+        if "requests" not in container.resources:
+            ensure_path(patches, base_path, ["requests"])
+        patches.append({
+            "op": "add" if "cpu" not in container.resources.get("requests", {}) else "replace",
+            "path": f"/spec/containers/{i}/resources/requests/cpu",
+            "value": "0.001"
+        })
 
     # Modify the CPU requests to 0.001 for all initContainers
     for i, container in enumerate(pod.spec.initContainers):
-        add_patch(container, i, "initContainers")
+        base_path = f"/spec/initContainers/{i}/resources"
+        if "requests" not in container.resources:
+            ensure_path(patches, base_path, ["requests"])
+        patches.append({
+            "op": "add" if "cpu" not in container.resources.get("requests", {}) else "replace",
+            "path": f"/spec/initContainers/{i}/resources/requests/cpu",
+            "value": "0.001"
+        })
+
+    # Base64 encode the patch
+    patch_str = json.dumps(patches)
+    patch_bytes = patch_str.encode('utf-8')
+    patch_base64 = base64.b64encode(patch_bytes).decode('utf-8')
 
     # Construct the response
-    response = {
-        "uid": admission_review.request["uid"],
-        "allowed": True,
-        "patchType": "JSONPatch",
-        "patch": patches
-    }
+    response = AdmissionReviewResponse(
+        uid=admission_review.request["uid"],
+        allowed=True,
+        patchType="JSONPatch",
+        patch=patch_base64
+    )
 
-    admission_review_response = {
-        "apiVersion": "admission.k8s.io/v1",
-        "kind": "AdmissionReview",
-        "response": response
-    }
+    admission_review_response = AdmissionReview(
+        apiVersion="admission.k8s.io/v1",
+        kind="AdmissionReview",
+        response=response
+    )
 
-    return AdmissionReviewResponse(**admission_review_response)
+    return admission_review_response
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    cert_file = os.getenv("TLS_CERT_FILE")
+    key_file = os.getenv("TLS_KEY_FILE")
+
+    if not cert_file or not key_file:
+        raise ValueError("TLS_CERT_FILE and TLS_KEY_FILE environment variables must be set")
+
+    uvicorn.run(app, host="0.0.0.0", port=8000, ssl_keyfile=key_file, ssl_certfile=cert_file)
 ```
+
+I am not going to comment more the code above, after all it does the work form my cpu requests rewrite needs, your code will look different. Just a few pointers:
+
+- you will need to have your http server to use ssl, with a key and certificate to provide one way or another.
+- you will need to encode the patch array with base64
+- my mutate_pod section creates or overrides cpu requests to 0.001, for containers and init containers. Don't do that at work.
 
 You can see how to run and test this code in my github project page: https://github.com/joelapatatechaude/mutating-webhook-cpu
 In particular, there is an example folder with some admissionreviewrequest
 
-# 2. Containerize the app
+## 2. Containerize the app
 
 I am using the following containerfile:
 
@@ -273,11 +318,18 @@ CMD python /opt/webhook.py
 I am using a Red Hat universal base image - minimal -. It's slim and secured. You might need to create a Red Hat account to access it. It's worth it,
 just read this if you need convincing: https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image
 
-# 3. Deploy that container.
+## 3. Deploy that container.
 
 ```yaml
 
 ```
 
-4. Get some certificate. Those can be injected, so very easy
-5. Configure the webhook with a ValidatingWebhookConfiguration
+## 4. Get some certificate. Those can be injected, so very easy
+
+## 5. Configure the webhook with a ValidatingWebhookConfiguration
+
+# Concluding remarks
+
+Like many things, getting an admission webhook to work the first time may seems a bit tricky. But once the pattern is understood, it becomes
+very easy to write more. Since then, for me, quite often, when confronted with some kubernetes challenges, I regularly think, oh! I can fix
+that with a mutatting / validating webhook. Everything looks like a nail to my new hammer.
