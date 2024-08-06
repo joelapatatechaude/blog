@@ -328,6 +328,7 @@ CMD python /opt/webhook.py
 
 I am using a Red Hat universal base image - minimal -. It's slim and secured. You might need to create a Red Hat account to access it. It's worth it,
 just read this if you need convincing: https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image
+You should then push that container to a registry, as it will be pulled by the pod, according to the deployment (see next section)
 
 ## 3. Deploy that container.
 
