@@ -351,14 +351,6 @@ the size of that PVC (I use 50GB instead of the default 100GB). Adjust based on 
   />
 </figure>
 
-## Enabling wifi
-
-I don't think that's possible, I didn't find any hint on how to do that so far. With the raise of Edge computing, this will become easy at
-some points. But at this stage, your SNO needs to be attached
-to your router via the ethernet cable afaik. It's a good time to enable Wake on Lan (WOL) on your laptop bios, to be able to start
-your SNO remotly via the so called magic packet. For that I use `sudo ether-wake <the mac address>` and may also have to specify
-the network interface with the `i` option). Shuting down your SNO may also be done via a simple `shutdown now` when you ssh. That will do for a lab
-setup, but not for a real cluster of course.
 
 # Troubleshooting
 
