@@ -1,8 +1,8 @@
 ---
 title: 'A kubernetes mutating webhook that overrides CPU requests'
-date: '2024-8-6'
-tags: ['openshift', 'mutating-webhook', 'cpu-requests']
-draft: true
+date: '2024-8-7'
+tags: ['openshift', 'mutating-webhook', 'cpu-requests', 'lab', 'tech-tutorial']
+draft: false
 thumbnail: '/static/images/devspaces/frog-spa3.webp'
 summary: 'I am explaining why I wrote a mutating webhook, and how simple it is to do so. A few debunk, and a few tips along the way'
 ---
@@ -39,7 +39,7 @@ I like to think of a validating admission controller like a fancy night club bou
 
 Wearing flip flop (we call them thongs in Australia, how weird) would get you rejected, in other words, **not validated**.
 
-I like to think of a mutating admission controller like the same bouncer giving hats to customer that want to join a hat-only party but didn’t bring their hat.
+I like to think of a mutating admission controller like the same bouncer giving hats to customers that want to join a hat-only party but didn’t bring their hat.
 
 <figure>
   {' '}
@@ -51,23 +51,35 @@ I like to think of a mutating admission controller like the same bouncer giving 
   />
 </figure>
 
-Those customers get “mutated” with a red hat, before they get in. Now they look cool.
+Those customers get **mutated** with a red hat, before they get in. Now they look cool and ready to rock the party.
+
+Going back to the first bouncer, If you paid close attention to the flip flop image, and I know you did, you would have noticed that someone inside the club is already wearing flip flop, right?
+
+<figure>
+  {' '}
+  <img src="/static/images/admission-webhook/flipflop2.webp" alt="" width="800" />
+</figure>
+While this can be blamed on Dall-E 2 that failed to follow my prompt to the letter, this is also the
+opportunity for me to remind you: Admission webhook don't care about what's already inside your cluster,
+it only looks at what resources want to get in. So if you enable a webhook a time `t1`, everything that
+was created before `t1` remains. For my cpu requests webhook, that means I will have to rolling restart
+some pods if I want to get their cpu requests overwritten.
 
 Now, it’s unlikely someone (you, me) would ever write an admission controller: admission controllers are written in GO, and compiled with the kube-apiserver.
 You may activate / desactive the admission controllers availables.
 The full list is available here https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#what-does-each-admission-controller-do
 Among this list, two are very important for us today:
 `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook`. Those controller calls mutating or validating webhook, and that webhook is what we are going to write.
-It's easy, even I can do it.
+It's easy, even I can do it, probably because I don't need to write it in Go language.
 
 ## What are admission webhook?
 
 Admission webhook are simple custom HTTP callback that are triggered by the Kubernetes API server when handling API requests.
 In this blog, I will write a mutating admission webhook in python, that mutates the CPU requests of pods. Unlike admission controllers,
-that are part of the kube-apiserver, and written in Go language, admission webhook can be written in any languages, and are pretty straightforward.
-It just need to provide an API endpoint, and manipulate jsons. Too easy!.
+that are part of the kube-apiserver, and written in Go language, admission webhook can be written in any language, and are pretty straightforward.
+They just need to provide an API endpoint, and manipulate jsons. Too easy!.
 
-The requests receive on the endpoint /mutate/ is a JSON `AdmissionReview`. For a pod creation, it will look like:
+The requests received on the /mutate/ endpoint is a JSON `AdmissionReview`. For a pod creation, it may look like:
 
 ```JSON
 {
@@ -96,7 +108,7 @@ The requests receive on the endpoint /mutate/ is a JSON `AdmissionReview`. For a
 }
 ```
 
-If the pod defines a single container, and no initContainer, the response will look like
+The response may look like
 
 ```JSON
 {
@@ -133,41 +145,40 @@ where the `patch` is some base64 encoded patch array that could look like:
 ]
 ```
 
-# Why writting a CPU request mutating webhook to set those CPU requests low?
+# Why writing a CPU request mutating webhook to set those CPU requests low?
 
 I am running a small OpenShift Lab cluster, with limited CPU and Memory. Everytime I install an Operator, such as GitOps, ACS, ACM,
 those operators request a certain amount of CPU and Memory for some of it's pod. The request is a guaranteed amount of resource
-for the pod, wether it's actually being used or not. There is a very good reason why those requests (and limits) are being made.
+for the pod, weither it's actually being used or not. There is a very good reason why those requests (and limits) are being made.
 It guarantees that the pods will function correctly under moderate or heavy loads. However, say I have 16 CPU, and after installing
 a few Operators, 16 CPU are already requested, there is no more resource available to schedule new workload with CPU requests, even
-if the cluster is acually iddle, with say just 1 CPU being used. It's very quickly limiting for a "Lab" environment, which is why I wrote
+if the cluster is actually idle, with say just 1 CPU being used. It's very quickly limiting for a "Lab" environment, which is why I wrote
 this admission webhook. In doing so, I am aware I am responsable of closely monitoring CPU usages. Clearly, the mutating webhook will need to be configured
 to ignore certain critical namespaces to protect critical resources such as etcd, api-server.
 
-## Why not editing the deployments, statefullsets, and deamonsets instead of the pod?
+## Why not edit the deployments, statefullsets, and deamonsets instead of the pod?
 
-Quite often, those resources are controlled by parent resources, and editing them may not stick. On the other hands, pods are usually
+Quite often, those resources are controlled by parent resources, and editing them may not stick. On the other hand, pods are usually
 indirectly created by deployments, statefullsets, and deamonsets. Editing pods on the fly with a mutating webhook is perfectly fine. In fact,
-it's a common strategy used to inject sidecar containers in pod, as done by the Istio project for example, that is until this project gets ride
+it's a common strategy used to inject sidecar containers in pods, as done by the Istio project for example, that is until this project gets rid
 of sidecars injection in an upcoming version, but you got the idea.
 
-## Why not using the ClusterResourceOverride operator?
+## Why not use the ClusterResourceOverride operator?
 
-This is a great operator that can mutate the ratio between limits and requests. However, I needed something a bit more aggresive.
-Besides, I anticipate I will need fine grain control at a later stage, and the ClusterResourceOverride only let specify one override resource
-that will be applied to selected namespaces. But different namespace can't have different override resource. Overall, I'll need more control.
+This is a great operator that can mutate the ratio between limits and requests. However, I needed something a bit more aggressive.
+Besides, I anticipate I will need fine grain control at a later stage, and the ClusterResourceOverride only lets specify one override resource
+that will be applied to selected namespaces. But different namespaces can't have different override resources. Overall, I'll need more control.
 
 ## How about memory?
 
-Unlike CPU, if a pod doesn't have the minimum requirement memory allocated, it may run, and later run out of memory, being killed by the OOM killer.
+Unlike CPU, if a pod doesn't have the minimum requirement memory allocated, it may run, but later run out of memory and be killed by the OOM killer.
 Think for example about a java
-app with it's heap size requirements. It's much more dangerous to rewrite memory requests on the fly. I will probably do it at some points, but
-I would need to be able to override memory request differently for various containers. A fine grain control I can managed in a later version of
-my webhook.
+app with it's heap size requirements. For those reasons, it's much more dangerous to rewrite memory requests on the fly. I will probably do it at some points, but
+I would need to be able to override memory request differently for various containers.
 
-## Why not just removing the CPU requests of the pod?
+## Why not just remove the CPU requests of the pod?
 
-It's probably valide. I guess by seting the request to 0.001, I'll be able to infere that any container with that value has been mutated by
+It's probably valid. I guess by setting the request to 0.001, I'll be able to infer that any container with that value has been mutated by
 my webhook.
 
 # Writing and deploying the webhook in 5 easy steps.
@@ -175,18 +186,18 @@ my webhook.
 1. Write the http api server. Very simple in Python, choose your prefered languages
 2. Containerize this app. Simple too.
 3. Write and deploy the deployment / services. Simple
-4. Get some certificate. Those can be injected, so very easy
-5. Configure the webhook with a ValidatingWebhookConfiguration
+4. Get some certificates. Those can be injected, so very easy
+5. Configure the webhook with a ValidatingWebhookConfiguration / MutatingWebhookConfiguration
 
 Let's get started.
 
 ## 1. Write the http api server.
 
-I am using python because I am not very smart. Bright people should of course use Clojure for an extra challenge. The
+I am using python because I am not very smart. Bright people will of course use Clojure for an added challenge. The
 point is, it doesn't have to be written in Go, unlike what some blog post out there seems to imply.
-The code should listen to POST requests on the /mutate path, parse the admission, and return an ... admissionReview
-that now include some patch statements. I am using the pydantic python library to parse the json requests, and the pupular fastAPI
-to manage the API requests. Finally, uvicorn is used as an embedded webserver to serve the requests, uvicorn seems popular right now.
+The code should listen to POST requests, for example on the /mutate path, parse the admission, and return an ... admissionReview
+that now includes some patch statements. I am using the pydantic python library to parse the json requests, and the fastAPI
+to manage the API requests. Finally, uvicorn is used as an embedded webserver to serve the requests, uvicorn is so popular right now.
 
 ```python
 
@@ -292,14 +303,14 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, ssl_keyfile=key_file, ssl_certfile=cert_file)
 ```
 
-I am not going to comment more the code above, after all it does the work form my cpu requests rewrite needs, your code will look different. Just a few pointers:
+I am not going to comment much the code above, after all it does the work form my cpu requests rewrite needs, your code will look different. Just a few pointers:
 
-- you will need to have your http server to use ssl, with a key and certificate to provide one way or another.
-- you will need to encode the patch array with base64
-- my mutate_pod section creates or overrides cpu requests to 0.001, for containers and init containers. Don't do that at work.
+- you will need to have your http server to use ssl, with a key and certificate to provide one way or another. OpenShift will reject your requests otherwise.
+- you will need to encode the patch array with base64.
+- my mutate_pod section creates or overrides cpu requests to 0.001, for containers and init containers. Kids, don't try that at ~~home~~ work.
 
 You can see how to run and test this code in my github project page: https://github.com/joelapatatechaude/mutating-webhook-cpu
-In particular, there is an example folder with some admissionreviewrequest
+In particular, there is an example folder with some admissionreviewrequest.
 
 ## 2. Containerize the app
 
@@ -317,16 +328,143 @@ CMD python /opt/webhook.py
 
 I am using a Red Hat universal base image - minimal -. It's slim and secured. You might need to create a Red Hat account to access it. It's worth it,
 just read this if you need convincing: https://www.redhat.com/en/blog/introducing-red-hat-universal-base-image
+You should then push that container to a registry, as it will be pulled by the pod, according to the deployment (see next section)
 
 ## 3. Deploy that container.
 
-```yaml
+Below is an example deployment
 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mutate-cpu
+  namespace: admission-webhook
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mutate-cpu
+  template:
+    metadata:
+      labels:
+        app: mutate-cpu
+    spec:
+      volumes:
+        - name: my-tls
+          secret:
+            secretName: my-tls
+      containers:
+        - name: mutate-cpu
+          resources:
+            requests:
+              cpu: 0.001
+          image: quay.io/rh_ee_cschmitz/cpu-request-override:blogpost
+          volumeMounts:
+            - mountPath: '/mount'
+              name: my-tls
+              readOnly: true
+          env:
+            - name: TLS_CERT_FILE
+              value: '/mount/tls.crt'
+            - name: TLS_KEY_FILE
+              value: '/mount/tls.key'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
 ```
 
-## 4. Get some certificate. Those can be injected, so very easy
+The only thing to notice here is that I am mounting my certificate and key as env variables that will be consumed by my python web server. One way or another,
+you will need to get some certs. OpenShift won't let you run your admission webhook server without tls. You don't need to manually create / maintain those certs thoughts,
+OpenShift can do that for you, read the next section.
+
+## 4. Get some certificates. Those can be injected, so very easy
+
+OpenShift services that are annotated with:
+
+```yaml
+service.beta.openshift.io/serving-cert-secret-name=<secret_name>
+```
+
+will have a secret named... secret_name automatically generated, that contains... a cert and a key. Read more about this
+[here](https://docs.openshift.com/container-platform/4.16/security/certificates/service-serving-certificate.html#add-service-certificate_service-serving-certificate).
+
+So when creating the
+mutating cpu-request webhook service, all is needed is to add that annotation on the service:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mutate-cpu
+  namespace: admission-webhook
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: my-tls
+spec:
+  selector:
+    app: mutate-cpu
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+```
+
+And now, I have a `my-tls` secret with a tls.crt and tls.key data, which you saw are mounted by my pods (see
+the deployment section above)
 
 ## 5. Configure the webhook with a ValidatingWebhookConfiguration
+
+The last thing to do is to register this webhook. This is done via the `MutatingWebhookConfiguration`
+
+```yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  namespace: admission-webhook
+  name: mutate-cpu
+  annotations:
+    service.beta.openshift.io/inject-cabundle: 'true'
+webhooks:
+  - name: mutate-pods.example.com
+    clientConfig:
+      service:
+        name: mutate-cpu
+        namespace: admission-webhook
+        path: '/mutate'
+        port: 8000
+    rules:
+      - operations: ['CREATE', 'UPDATE']
+        apiGroups: ['']
+        apiVersions: ['v1']
+        resources: ['pods']
+        scope: Namespaced
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    namespaceSelector:
+      matchLabels:
+        mutate-cpu: 'true'
+    failurePolicy: Ignore
+    timeoutSeconds: 3
+```
+
+A few important things:
+
+- The annotation `service.beta.openshift.io/inject-cabundle` will ensure that the CA used to signed the certificates from the service (see section above) are
+  injected. Therefore the service certificates will be validated / trusted.
+- failurePolicy is set to `Ignore`. This is important in this case as I don't want to prevent pod creation in the unlikely event there is a bug in my python code.
+  On the other hand, for webhook which job is to check some critical security settings before validating a request, it may be important to set this to `Fail` (which is the default btw)
+- I lowered the timeoutSeconds to 3. It's my belief that my http server should respond quickly, or be ignored otherwise.
+- It's probably a safe practice to scope those webhook to specific namespaces. This can be done via a namspaceSelector. In my case, only namespaces with the label `mutate-cpu` will have
+  their pod mutated by my webhook. Obviously, I would want to avoid certain critical namespace for which CPU requests are absolutely critical for the health of the cluster (openshift-etcd, openshift-apiserver, ...)
+
+And that's it, now all I have to do is to relabel some target namespace, with something like:
+
+```bash
+oc label namespace/my-namespace mutate-cpu=true
+```
+
+and that should do the trick. Remember about the bouncer and the flipflop. Only new pods will get their cpu mutated. For existing pods in that namespace, you may need to do a rolling restart.
 
 # Concluding remarks
 
@@ -343,3 +481,5 @@ that with a mutatting / validating webhook. Everything looks like a nail to my n
     height="460"
   />
 </figure>
+
+Most of the code is available at https://github.com/joelapatatechaude/mutating-webhook-cpu , including the kubernetes resources to create, which are located somewhere under the helm directory.
