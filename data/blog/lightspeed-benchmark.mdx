@@ -56,3 +56,163 @@ What this benchmark is not:
 - Not biased. All troubleshooting scenarios were written long before LightSpeed was released. Prompts were initially tested with gpt-4o mini, so it may have a slight edge—but identical prompts were used across all models.
 
 - Not covering all of LightSpeed’s capabilities. This post focuses on troubleshooting. While LightSpeed also answers general OpenShift questions and generates kubernetes YAML resources effectively, that’s outside the scope here.
+
+# Benchmark protocol
+
+This benchmark is based on six troubleshooting exercises (or "tests") that I created over a year ago as part of
+a hands-on workshop to help OpenShift users learn how to diagnose and resolve issues.
+You can access the full workshop—including instructions, hints, and solutions—here: https://trbl-workshop.cszevaco.com/workshop.
+
+With a good understanding of both how LightSpeed and OpenShift work, and as the original author of the workshop,
+I crafted a consistent set of questions to ask the AI assistant.
+The answers were assessed based on their accuracy and effectiveness in helping resolve the problem.
+
+For this benchmark,
+
+- I used OpenShift LightSpeed Operator in version 0.3.3, still in tech preview at time of writing. Running on OpenShift 4.18.5
+- I used vLLM version: 0.8.4 with GPU support (event for Granite 3.3-2b model)
+- The chat history was cleared between each test to avoid context issues.
+
+# Results
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Test #</th>
+      <th>Description</th>
+      <th>Context used</th>
+      <th>Prompt(s) used</th>   
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>The deployment definition has a typo in the image name used for the pod, resulting in an imagepullbackoff. The fix should be to rename the image in the deployment</td>
+      <td>Full deployment yaml + Full pod yaml + pod events</td>
+      <td>Full deployment yaml + Full pod yaml + pod events</td>
+
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>The Eagles</td>
+      <td>1972</td>
+            <td>1972</td>
+    </tr>
+
+  </tbody>
+</table>
+
+<table border="1" cellpadding="8" cellspacing="0">
+  <thead>
+    <tr>
+      <th>Test</th>
+      <th>Problem Description</th>
+      <th>Context Used</th>
+      <th>Prompts Used</th>
+      <th>Expected Results</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Test-01</td>
+      <td>
+        The deployment definition has a typo in the image name used for the pod, resulting in an
+        ImagePullBackOff. The fix should be to rename the image in the deployment.
+      </td>
+      <td>Full deployment YAML + Full pod YAML + pod events</td>
+      <td>
+        Why is the pod not starting? There is a typo in the image name, what is the best approach to
+        fix it?
+      </td>
+      <td>
+        The answer should help identify that a typo is the problem, by stating that the image may
+        not exist. The full image name should also be displayed. Alternative root causes may also be
+        listed. Editing the deployment should be suggested. Suggesting to edit the pod would
+        indicate a misunderstanding of the relationship between deployments and pods.
+      </td>
+    </tr>
+    <tr>
+      <td>Test-02</td>
+      <td>
+        The image used is configured with a wrong entrypoint command (typo in the start vs starttt
+        script). The pod starts and crashes immediately.
+      </td>
+      <td>Full deployment YAML + Full pod YAML + Full pod log + pod events</td>
+      <td>
+        Why is the pod not starting? I can't edit the container image, how can I fix the issue?
+      </td>
+      <td>
+        The answer should identify the typo in the start script and may suggest fixing the container
+        image. It should also explain how to override the command via the deployment file.
+      </td>
+    </tr>
+    <tr>
+      <td>Test-03</td>
+      <td>
+        The pod does not start due to CPU and memory quotas in the namespace. The quotas are tight,
+        and the deployment's resource limits and requests need to be tuned. Eventually, it's
+        discovered that the quotas are too small for two replicas, requiring a scale-down to one
+        replica.
+      </td>
+      <td>
+        Full deployment YAML Adding the namespace resource quotas Adding one failing pod's events +
+        full YAML + logs
+      </td>
+      <td>
+        Why is the pod not starting? What value do you suggest I should use for the limits and
+        requests? Since I am running two replicas in the deployment, what value do you suggest I
+        should use? Why is this pod not starting? I can't optimize the application resources, and I
+        can't change the resource quotas of the namespace. What are my other options?
+      </td>
+      <td>
+        Should point to resource quotas, and suggest defining resource limits/requests. Should
+        suggest specific values like CPU: 15m, Memory: 15Mi, Requests: 10m/7.5Mi. Should recommend
+        scaling down to one replica if resources cannot be optimized.
+      </td>
+    </tr>
+    <tr>
+      <td>Test-04</td>
+      <td>
+        The route is not available due to two misconfigurations in the service (wrong pod selector
+        and incorrect port configuration).
+      </td>
+      <td>Full deployment YAML + Full service YAML + Full route YAML</td>
+      <td>Why can't I access this deployment's route?</td>
+      <td>
+        The answer should identify both issues: incorrect service selector and incorrect port.
+      </td>
+    </tr>
+    <tr>
+      <td>Test-05</td>
+      <td>
+        The pod is not deploying due to a node selector referencing a label not present on any node.
+      </td>
+      <td>Full deployment YAML + Full pod YAML Adding node YAML</td>
+      <td>
+        Why is the pod not deploying? There is a policy that forces the use of node selectors in the
+        deployment definition. Based on the node definition attached, can you suggest some labels
+        likely to be present on all nodes, so my pod can be scheduled everywhere?
+      </td>
+      <td>
+        The answer should reference node selector issues and suggest corrections. It should propose
+        usable node selector values and include YAML-formatted examples.
+      </td>
+    </tr>
+    <tr>
+      <td>Test-06</td>
+      <td>A namespace is stuck in deletion due to lingering finalizers.</td>
+      <td>Full namespace YAML Full PVC info Full pod YAML Downloaded secret definition</td>
+      <td>
+        Why is this namespace stuck in terminating? Why is this PVC stuck in terminating state? Can
+        you provide me with an OpenShift command to identify any pod using this PVC? Why is this pod
+        stuck in terminating state? How can I remove the finalizer? Why is this secret not deleted,
+        and how can I delete it?
+      </td>
+      <td>
+        The answers should reference finalizers blocking deletion. Should suggest checking PVC
+        ownership. Should provide relevant `oc` commands for identifying usage and removing
+        finalizers from pods, PVCs, or secrets.
+      </td>
+    </tr>
+  </tbody>
+</table>

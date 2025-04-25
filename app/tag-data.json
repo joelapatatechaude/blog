@@ -1,9 +1,5 @@
 {
   "openshift": 5,
-  "dev-spaces": 1,
-  "developer": 1,
-  "ide": 1,
-  "vdi": 1,
   "ai": 1,
   "lightspeed": 1,
   "benchmark": 1,
@@ -11,7 +7,11 @@
   "cpu-requests": 1,
   "lab": 3,
   "tech-tutorial": 3,
-  "sno": 1,
   "tailscale": 1,
-  "vpn": 1
+  "vpn": 1,
+  "sno": 1,
+  "dev-spaces": 1,
+  "developer": 1,
+  "ide": 1,
+  "vdi": 1
 }
