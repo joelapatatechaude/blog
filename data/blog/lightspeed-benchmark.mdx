@@ -1,0 +1,58 @@
+---
+title: 'I benchmarked OpenShift AI Assistant and this is what I found'
+date: '2025-04-25'
+tags: ['openshift', 'AI', 'lightspeed', 'benchmark']
+draft: true
+thumbnail: '/static/images/devspaces/frog-spa3.webp'
+summary: 'I am using OpenShift LightSpeed AI assistant to solve all the exercises of a troubleshooting tutorial I created last year, and the results are insane.'
+---
+
+# TL;DR
+
+The OpenShift LightSpeed AI Assistant is ridiculously useful.
+Even in its current tech preview phase, I’m already impressed.
+OpenShift admins and users are going to love it.
+For quick tests or lab environments, you can get it up and running in
+minutes by connecting it to OpenAI’s cloud models - gpt-4o mini works perfectly well.
+For disconnected clusters or environments where data can’t leave the premises,
+adding a GPU to your cluster and deploying a local LLM is a solid alternative.
+A well-trained 8-billion parameter conversational model is more than
+sufficient, and Granite 3.3-8B-Instruct is my top pick at the time of writing.
+
+<TOCInline toc={props.toc} asDisclosure />
+
+# Introduction
+
+AI assistants are a powerful way to boost productivity.
+Yes, their answers still need cross-checking at times—but the pace of improvement is astonishing, and the productivity gains are already real.
+
+In this post, I’ll share the results of a short, unbiased benchmark study that highlights how effective
+OpenShift LightSpeed (the OpenShift AI Assistant) can be in troubleshooting scenarios.
+
+Why is this benchmark unbiased? Because I created a set of hands-on OpenShift troubleshooting exercises about a year ago,
+as a training asset for OpenShift users and admins.
+Now that LightSpeed is available, I’m using the exact same scenarios to evaluate its capabilities. No retrofitting or tailored prompts.
+
+The benchmark compares results across three different LLM providers.
+LightSpeed itself needs an LLM backend, either cloud-hosted or self-managed, but thanks to its
+RAG (Retrieval-Augmented Generation) integration with OpenShift documentation, no model retraining or fine-tuning is needed.
+
+Here are the models I used:
+
+- OpenAI gpt-4o-mini: Fast, powerful, affordable, and a leading option in the market. While OpenAI hasn’t disclosed the exact size of the model, it’s estimated to use ~8 billion parameters. It performed extremely well in this benchmark.
+
+- IBM Granite-3.3-8B-Instruct: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At 8 billion parameters, this model is a solid peer to gpt-4o mini. (Spoiler: it performs just as well.)
+
+- IBM Granite-3.3-2B-Instruct: At 2 billion parameters, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results. (Spoiler: not yet.).
+
+What this benchmark is not:
+
+- Not a speed or concurrency test. Both Granite models ran on a single GPU and were fast enough for single-user usage.
+
+- Not a full LLM showdown. The goal is to showcase LightSpeed’s value even on smaller models, not rank every model on the market.
+
+- Not a comparison of LLM servers solutions. I used the open-source vLLM server, where Red Hat (via Neural Magic) is now the top contributor. Quantization support is still maturing, and other servers might be better for large quantized models.
+
+- Not biased. All troubleshooting scenarios were written long before LightSpeed was released. Prompts were initially tested with gpt-4o mini, so it may have a slight edge—but identical prompts were used across all models.
+
+- Not covering all of LightSpeed’s capabilities. This post focuses on troubleshooting. While LightSpeed also answers general OpenShift questions and generates kubernetes YAML resources effectively, that’s outside the scope here.
