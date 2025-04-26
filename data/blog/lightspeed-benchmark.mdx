@@ -76,7 +76,6 @@ For this benchmark,
 The table below summarizes the six tests, the context provided
 (such as Kubernetes resource YAML, pod logs, and resource events),
 the prompts used, and the expected answers.
-
 Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooting guidances specific to the problem at hand.
 
 <table class="table-auto">
@@ -163,8 +162,8 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
     </tr>
 
         <tr>
-      <td rowspan="3">[6](https://trbl-workshop.cszevaco.com/workshop/exercise_06)</td>
-      <td rowspan="3">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
+      <td rowspan="6">[6](https://trbl-workshop.cszevaco.com/workshop/exercise_06)</td>
+      <td rowspan="6">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
       <td>Full Namespace YAML</td>
       <td>Why is this namespace stuck in terminating?</td>
       <td>expected1</td>
@@ -178,8 +177,110 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td>Can you provide me with an openshift command line that identify any pod using this PVC?</td>
       <td>expected3</td>
     </tr>
+    <tr>
+      <td rowspan="2">Adding the full POD YAML</td>
+      <td>Why is this pod stuck in terminating state?</td>
+      <td>expected4</td>
+    </tr>
+        <tr>
+      <td>How can I remove the finalizer?</td>
+      <td>expected5</td>
+    </tr>
+        <tr>
+      <td>Downloading the secret definition, and adding it via the upload option.</td>
+      <td>why is this secret not deleted, and how can I delete it?</td>
+      <td>expected6</td>
+    </tr>
 
   </tbody>
 </table>
 
+Out of the 6 tests mentioned above, many of my colleague were particularly impressed with test 3.
+That's the one you would want to dive a bit more first if needed.
+
+The gif below illustrate the use of OpenShift LightSpeed to try and solve test 1.
+
+INSERT DA GIF HERE
+
 # Results
+
+## Test 1
+
+### Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2">The deployment specifies an incorrect image name, causing the pod to fail with ImagePullBackOff</td>
+      <td rowspan="2">Full Deployment YAML + full Pod YAML + Pod events</td>
+      <td>Why is the pod not starting?</td>
+      <td>The answer should highlight a possible typo in the image name, show the full image name, and mention other potential causes, while emphasizing the typo as a likely root cause.</td>
+    </tr>
+    <tr>
+      <td>There is a typo in the image name, what is the best approach to fix it?</td>
+      <td>The answer should recommend editing the deployment, not the pod, to demonstrate understanding of the deployment-pod relationship.</td>
+    </tr>
+  </tbody>
+</table>
+### Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>The answer should highlight a possible typo in the image name, show the full image name, and mention other potential causes, while emphasizing the typo as a likely root cause.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+        <tr>
+      <td>The answer should recommend editing the deployment, not the pod, to demonstrate understanding of the deployment-pod relationship.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+  </tbody>
+</table>
+
+### Test 1 conclusion
+
+### Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![frogspa](/static/images/devspaces/frog-spa2.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
