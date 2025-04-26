@@ -94,7 +94,7 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
     <tr>
       <td rowspan="2">[1](https://trbl-workshop.cszevaco.com/workshop/exercise_01)</td>
       <td rowspan="2">The deployment specifies an incorrect image name, causing the pod to fail with ImagePullBackOff</td>
-      <td rowspan="2">Full deployment yaml + full pod yaml + pod events</td>
+      <td rowspan="2">Full Deployment YAML + full Pod YAML + Pod events</td>
       <td>Why is the pod not starting?</td>
       <td>The answer should highlight a possible typo in the image name, show the full image name, and mention other potential causes, while emphasizing the typo as a likely root cause.</td>
     </tr>
@@ -106,7 +106,7 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
     <tr>
       <td rowspan="2">[2](https://trbl-workshop.cszevaco.com/workshop/exercise_02)</td>
       <td rowspan="2">The container image has a typo in its entrypoint command (e.g., start vs. starttt), causing the pod to start and crash immediately.</td>
-      <td rowspan="2">Full deployment yaml + full pod yaml + full pod log + pod events</td>
+      <td rowspan="2">Full Deployment YAML + full Pod YAML + full Pod log + Pod events</td>
       <td>Why is the pod not starting?</td>
       <td>expected1</td>
     </tr>
@@ -116,55 +116,67 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
     </tr>
 
         <tr>
-      <td rowspan="2">[3](https://trbl-workshop.cszevaco.com/workshop/exercise_03)</td>
-      <td rowspan="2">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
-      <td>context1</td>
-      <td>prompt1</td>
+      <td rowspan="5">[3](https://trbl-workshop.cszevaco.com/workshop/exercise_03)</td>
+      <td rowspan="5">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
+      <td>Full Deployment YAML</td>
+      <td>Why is the pod not starting?</td>
       <td>expected1</td>
     </tr>
+      <tr>
+      <td rowspan="2">Adding the namespace resource quotas</td>
+      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>expected2</td>
+    </tr>
     <tr>
-      <td>context2</td>
-      <td>prompt2</td>
-      <td>Result2</td>
+      <td>Since I am running two replicas in the deployment, what value do you suggest I should use?</td>
+      <td>expected3</td>
+    </tr>
+    <tr>
+      <td rowspan="2">Adding one failing Pod events + full Pod YAML + full Pod logs</td>
+      <td>Why is this pod not starting?</td>
+      <td>expected4</td>
+    </tr>
+      <tr>
+      <td>I can't optimize the application resources, and I can't change the resource quotas of the namespace. What are my other options?</td>
+      <td>expected5</td>
     </tr>
 
         <tr>
-      <td rowspan="2">[4](https://trbl-workshop.cszevaco.com/workshop/exercise_04)</td>
-      <td rowspan="2">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
-      <td>context1</td>
-      <td>prompt1</td>
+      <td rowspan="1">[4](https://trbl-workshop.cszevaco.com/workshop/exercise_04)</td>
+      <td rowspan="1">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
+      <td>Full Deployment YAML + full Service YAML + full Route YAML</td>
+      <td>Why can't I access this deployment's route?</td>
       <td>expected1</td>
-    </tr>
-    <tr>
-      <td>context2</td>
-      <td>prompt2</td>
-      <td>Result2</td>
     </tr>
 
         <tr>
       <td rowspan="2">[5](https://trbl-workshop.cszevaco.com/workshop/exercise_05)</td>
       <td rowspan="2">The pod is unschedulable because the deployment specifies a node selector label that does not exist on any node.</td>
-      <td>context1</td>
-      <td>prompt1</td>
+      <td>Full Deployment YAML + full Pod YAML.</td>
+      <td>Why is the pod not deploying?</td>
       <td>expected1</td>
     </tr>
     <tr>
-      <td>context2</td>
-      <td>prompt2</td>
-      <td>Result2</td>
+      <td>Adding one Node YAML</td>
+      <td>There is a policy that forces the use of node selector in the deployment definition. Based on the node definition attached, can you suggest some labels that are likely to be presents in all nodes, so that my pod can be scheduled everywhere?</td>
+      <td>expected2</td>
     </tr>
 
         <tr>
-      <td rowspan="2">[6](https://trbl-workshop.cszevaco.com/workshop/exercise_06)</td>
-      <td rowspan="2">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
-      <td>context1</td>
-      <td>prompt1</td>
+      <td rowspan="3">[6](https://trbl-workshop.cszevaco.com/workshop/exercise_06)</td>
+      <td rowspan="3">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
+      <td>Full Namespace YAML</td>
+      <td>Why is this namespace stuck in terminating?</td>
       <td>expected1</td>
     </tr>
     <tr>
-      <td>context2</td>
-      <td>prompt2</td>
-      <td>Result2</td>
+      <td rowspan="2">Adding the full PVC YAML</td>
+      <td>Why is this PVC stuck in terminating state?</td>
+      <td>expected2</td>
+    </tr>
+    <tr>
+      <td>Can you provide me with an openshift command line that identify any pod using this PVC?</td>
+      <td>expected3</td>
     </tr>
 
   </tbody>
