@@ -107,11 +107,11 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="2">The container image has a typo in its entrypoint command (e.g., start vs. starttt), causing the pod to start and crash immediately.</td>
       <td rowspan="2">Full Deployment YAML + full Pod YAML + full Pod log + Pod events</td>
       <td>Why is the pod not starting?</td>
-      <td>expected1</td>
+      <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
     </tr>
     <tr>
       <td>I can't edit the container image, how can I fix the issue?</td>
-      <td>expected2</td>
+      <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
     </tr>
 
         <tr>
@@ -119,25 +119,25 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="5">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
       <td>Full Deployment YAML</td>
       <td>Why is the pod not starting?</td>
-      <td>expected1</td>
+      <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers.</td>
     </tr>
       <tr>
       <td rowspan="2">Adding the namespace resource quotas</td>
       <td>What value do you suggest I should use for the limits and requests?</td>
-      <td>expected2</td>
+      <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests.</td>
     </tr>
     <tr>
       <td>Since I am running two replicas in the deployment, what value do you suggest I should use?</td>
-      <td>expected3</td>
+      <td>The answer should clearly recommend CPU limits of 15m, memory limits of 15Mi, CPU requests of 10m, and memory requests of 7.5Mi.</td>
     </tr>
     <tr>
       <td rowspan="2">Adding one failing Pod events + full Pod YAML + full Pod logs</td>
       <td>Why is this pod not starting?</td>
-      <td>expected4</td>
+      <td>The answer should explain that the pod is failing due to out-of-memory (OOM) or resource exhaustion, suggest increasing the namespace resource quotas or optimizing container resource usage, and ideally recommend scaling down to one replica.</td>
     </tr>
       <tr>
       <td>I can't optimize the application resources, and I can't change the resource quotas of the namespace. What are my other options?</td>
-      <td>expected5</td>
+      <td>The answer should suggest scaling down the deployment to one replica to fit within the existing resource quotas.</td>
     </tr>
 
         <tr>
@@ -145,7 +145,7 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="1">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
       <td>Full Deployment YAML + full Service YAML + full Route YAML</td>
       <td>Why can't I access this deployment's route?</td>
-      <td>expected1</td>
+      <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
     </tr>
 
         <tr>
@@ -153,12 +153,12 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="2">The pod is unschedulable because the deployment specifies a node selector label that does not exist on any node.</td>
       <td>Full Deployment YAML + full Pod YAML.</td>
       <td>Why is the pod not deploying?</td>
-      <td>expected1</td>
+      <td>The answer should identify an issue with the node selector preventing pod scheduling and suggest reviewing or correcting the node selector configuration.</td>
     </tr>
     <tr>
       <td>Adding one Node YAML</td>
       <td>There is a policy that forces the use of node selector in the deployment definition. Based on the node definition attached, can you suggest some labels that are likely to be presents in all nodes, so that my pod can be scheduled everywhere?</td>
-      <td>expected2</td>
+      <td>The answer should provide a corrected node selector, ideally with clear instructions and an example shown in YAML format.</td>
     </tr>
 
         <tr>
@@ -166,36 +166,36 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="6">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
       <td>Full Namespace YAML</td>
       <td>Why is this namespace stuck in terminating?</td>
-      <td>expected1</td>
+      <td>The answer should mention that the namespace is stuck due to resources with lingering finalizers and should identify which resources are preventing termination.</td>
     </tr>
     <tr>
       <td rowspan="2">Adding the full PVC YAML</td>
       <td>Why is this PVC stuck in terminating state?</td>
-      <td>expected2</td>
+      <td>The answer should identify that a finalizer is blocking the PVC deletion and suggest checking the PVC’s owner reference or related resources.</td>
     </tr>
     <tr>
       <td>Can you provide me with an openshift command line that identify any pod using this PVC?</td>
-      <td>expected3</td>
+      <td>The answer should provide an oc command to identify the pod(s) using the PVC or attached to the underlying PV.</td>
     </tr>
     <tr>
       <td rowspan="2">Adding the full POD YAML</td>
       <td>Why is this pod stuck in terminating state?</td>
-      <td>expected4</td>
+      <td>The answer should identify that a non-standard finalizer is blocking pod termination, and recommend removing the finalizer as part of the resolution.</td>
     </tr>
         <tr>
       <td>How can I remove the finalizer?</td>
-      <td>expected5</td>
+      <td>The answer should provide an oc command to patch the resource and remove the finalizer.</td>
     </tr>
         <tr>
       <td>Downloading the secret definition, and adding it via the upload option.</td>
-      <td>why is this secret not deleted, and how can I delete it?</td>
-      <td>expected6</td>
+      <td>Why is this secret not deleted, and how can I delete it?</td>
+      <td>The answer should provide an oc command to patch the Secret and remove its finalizer, allowing the resource to be deleted.</td>
     </tr>
 
   </tbody>
 </table>
 
-Out of the 6 tests mentioned above, many of my colleague were particularly impressed with test 3.
+Out of the 6 tests mentioned above, **many of my colleague were particularly impressed with test 3**.
 That's the one you would want to dive a bit more first if needed.
 
 The gif below illustrate the use of OpenShift LightSpeed to try and solve test 1.
@@ -206,7 +206,7 @@ INSERT DA GIF HERE
 
 ## Test 1
 
-### Summary problem statement
+### Test 1 Summary problem statement
 
 <table class="table-auto">
   <thead>
@@ -230,10 +230,11 @@ INSERT DA GIF HERE
     </tr>
   </tbody>
 </table>
-### Summary results
+### Test 1 Summary results
 <table class="table-auto">
   <thead>
     <tr>
+      <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
       <th>Granite-3.3-8B-Instruct</th>
@@ -244,12 +245,14 @@ INSERT DA GIF HERE
   </thead>
   <tbody>
     <tr>
+      <td>Why is the pod not starting?</td>
       <td>The answer should highlight a possible typo in the image name, show the full image name, and mention other potential causes, while emphasizing the typo as a likely root cause.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td>gpt result aksajf; asdkljf adjsi dajk;a Dawning a_New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
     </tr>
         <tr>
+      <td>There is a typo in the image name, what is the best approach to fix it?</td>
       <td>The answer should recommend editing the deployment, not the pod, to demonstrate understanding of the deployment-pod relationship.</td>
       <td>gpt result</td>
       <td>8B result</td>
@@ -260,7 +263,502 @@ INSERT DA GIF HERE
 
 ### Test 1 conclusion
 
-### Detailed results
+### Test 1 Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![test1-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test1-prompt1-gpt4o-mini.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
+
+## Test 2
+
+### Test 2 Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2">The container image has a typo in its entrypoint command (e.g., start vs. starttt), causing the pod to start and crash immediately.</td>
+      <td rowspan="2">Full Deployment YAML + full Pod YAML + full Pod log + Pod events</td>
+      <td>Why is the pod not starting?</td>
+      <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
+    </tr>
+    <tr>
+      <td>I can't edit the container image, how can I fix the issue?</td>
+      <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
+    </tr>
+  </tbody>
+</table>
+### Test 2 Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>Why is the pod not starting?</td>
+      <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
+      <td>gpt result aksajf; asdkljf adjsi dajk;a Dawning a_New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+    </tr>
+        <tr>
+      <td>I can't edit the container image, how can I fix the issue?</td>
+      <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+  </tbody>
+</table>
+
+### Test 2 conclusion
+
+### Test 2 Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![frogspa](/static/images/devspaces/frog-spa2.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
+
+## Test 3 TODO
+
+### Test 3 Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+        <tr>
+      <td rowspan="5">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
+      <td>Full Deployment YAML</td>
+      <td>Why is the pod not starting?</td>
+      <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers.</td>
+    </tr>
+      <tr>
+      <td rowspan="2">Adding the namespace resource quotas</td>
+      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests.</td>
+    </tr>
+    <tr>
+      <td>Since I am running two replicas in the deployment, what value do you suggest I should use?</td>
+      <td>The answer should clearly recommend CPU limits of 15m, memory limits of 15Mi, CPU requests of 10m, and memory requests of 7.5Mi.</td>
+    </tr>
+    <tr>
+      <td rowspan="2">Adding one failing Pod events + full Pod YAML + full Pod logs</td>
+      <td>Why is this pod not starting?</td>
+      <td>The answer should explain that the pod is failing due to out-of-memory (OOM) or resource exhaustion, suggest increasing the namespace resource quotas or optimizing container resource usage, and ideally recommend scaling down to one replica.</td>
+    </tr>
+      <tr>
+      <td>I can't optimize the application resources, and I can't change the resource quotas of the namespace. What are my other options?</td>
+      <td>The answer should suggest scaling down the deployment to one replica to fit within the existing resource quotas.</td>
+    </tr>
+  </tbody>
+</table>
+### Test 3 Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>Why is the pod not starting?</td>
+      <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>2B result</td>
+    </tr>
+    <tr>
+      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests..</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+    <tr>
+      <td>Since I am running two replicas in the deployment, what value do you suggest I should use?</td>
+      <td>The answer should clearly recommend CPU limits of 15m, memory limits of 15Mi, CPU requests of 10m, and memory requests of 7.5Mi..</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+    <tr>
+      <td>Why is this pod not starting?</td>
+      <td>The answer should explain that the pod is failing due to out-of-memory (OOM) or resource exhaustion, suggest increasing the namespace resource quotas or optimizing container resource usage, and ideally recommend scaling down to one replica.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+    <tr>
+      <td>I can't optimize the application resources, and I can't change the resource quotas of the namespace. What are my other options?</td>
+      <td>The answer should suggest scaling down the deployment to one replica to fit within the existing resource quotas.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+  </tbody>
+</table>
+
+### Test 3 conclusion
+
+### Test 3 Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![frogspa](/static/images/devspaces/frog-spa2.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
+
+## Test 4 TODO
+
+### Test 4 Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="1">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
+      <td>Full Deployment YAML + full Service YAML + full Route YAML</td>
+      <td>Why can't I access this deployment's route?</td>
+      <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
+    </tr>
+  </tbody>
+</table>
+### Test 4 Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>Why can't I access this deployment's route?</td>
+      <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>2B result</td>
+    </tr>
+  </tbody>
+</table>
+
+### Test 4 conclusion
+
+### Test 4 Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![frogspa](/static/images/devspaces/frog-spa2.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
+
+## Test 5 TODO
+
+### Test 5 Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+      <td rowspan="2">The pod is unschedulable because the deployment specifies a node selector label that does not exist on any node.</td>
+      <td>Full Deployment YAML + full Pod YAML.</td>
+      <td>Why is the pod not deploying?</td>
+      <td>The answer should identify an issue with the node selector preventing pod scheduling and suggest reviewing or correcting the node selector configuration.</td>
+    </tr>
+    <tr>
+      <td>Adding one Node YAML</td>
+      <td>There is a policy that forces the use of node selector in the deployment definition. Based on the node definition attached, can you suggest some labels that are likely to be presents in all nodes, so that my pod can be scheduled everywhere?</td>
+      <td>The answer should provide a corrected node selector, ideally with clear instructions and an example shown in YAML format.</td>
+    </tr>
+  </tbody>
+</table>
+### Test 5 Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>Why is the pod not deploying?</td>
+      <td>The answer should identify an issue with the node selector preventing pod scheduling and suggest reviewing or correcting the node selector configuration</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>2B result</td>
+    </tr>
+        <tr>
+      <td>There is a policy that forces the use of node selector in the deployment definition. Based on the node definition attached, can you suggest some labels that are likely to be presents in all nodes, so that my pod can be scheduled everywhere?</td>
+      <td>The answer should provide a corrected node selector, ideally with clear instructions and an example shown in YAML format.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+  </tbody>
+</table>
+
+### Test 5 conclusion
+
+### Test 5 Detailed results
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+{/* <Zoom> */}
+![frogspa](/static/images/devspaces/frog-spa2.webp)
+{/* </Zoom> */}
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+some images
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+some images
+
+</details>
+
+## Test 6 TODO
+
+### Test 6 Summary problem statement
+
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Problem statement</th>
+      <th>Context used</th>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+    </tr>
+  </thead>
+  <tbody>
+        <tr>
+      <td rowspan="6">A namespace is stuck in terminating state due to lingering finalizers that have not been cleared.</td>
+      <td>Full Namespace YAML</td>
+      <td>Why is this namespace stuck in terminating?</td>
+      <td>The answer should mention that the namespace is stuck due to resources with lingering finalizers and should identify which resources are preventing termination.</td>
+    </tr>
+    <tr>
+      <td rowspan="2">Adding the full PVC YAML</td>
+      <td>Why is this PVC stuck in terminating state?</td>
+      <td>The answer should identify that a finalizer is blocking the PVC deletion and suggest checking the PVC’s owner reference or related resources.</td>
+    </tr>
+    <tr>
+      <td>Can you provide me with an openshift command line that identify any pod using this PVC?</td>
+      <td>The answer should provide an oc command to identify the pod(s) using the PVC or attached to the underlying PV.</td>
+    </tr>
+    <tr>
+      <td rowspan="2">Adding the full POD YAML</td>
+      <td>Why is this pod stuck in terminating state?</td>
+      <td>The answer should identify that a non-standard finalizer is blocking pod termination, and recommend removing the finalizer as part of the resolution.</td>
+    </tr>
+        <tr>
+      <td>How can I remove the finalizer?</td>
+      <td>The answer should provide an oc command to patch the resource and remove the finalizer.</td>
+    </tr>
+        <tr>
+      <td>Downloading the secret definition, and adding it via the upload option.</td>
+      <td>Why is this secret not deleted, and how can I delete it?</td>
+      <td>The answer should provide an oc command to patch the Secret and remove its finalizer, allowing the resource to be deleted.</td>
+    </tr>
+  </tbody>
+</table>
+### Test 6 Summary results
+<table class="table-auto">
+  <thead>
+    <tr>
+      <th>Prompt used</th>
+      <th>Expected results</th>
+      <th>GPT-4o mini</th>
+      <th>Granite-3.3-8B-Instruct</th>
+      <th>Granite-3.3-2B-Instruct</th>
+
+    </tr>
+
+  </thead>
+  <tbody>
+    <tr>
+      <td>Why is this namespace stuck in terminating?</td>
+      <td>The answer should mention that the namespace is stuck due to resources with lingering finalizers and should identify which resources are preventing termination.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>2B result</td>
+    </tr>
+    <tr>
+      <td>Why is this PVC stuck in terminating state?</td>
+      <td>The answer should identify that a finalizer is blocking the PVC deletion and suggest checking the PVC’s owner reference or related resources.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+        <tr>
+      <td>Can you provide me with an openshift command line that identify any pod using this PVC?</td>
+      <td>The answer should provide an oc command to identify the pod(s) using the PVC or attached to the underlying PV.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+        <tr>
+      <td>Why is this pod stuck in terminating state?</td>
+      <td>The answer should identify that a non-standard finalizer is blocking pod termination, and recommend removing the finalizer as part of the resolution.</td>
+  
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+
+        <tr>
+      <td>How can I remove the finalizer?</td>
+      <td>The answer should provide an oc command to patch the resource and remove the finalizer.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+        <tr>
+      <td>Why is this secret not deleted, and how can I delete it?</td>
+      <td>The answer should provide an oc command to patch the Secret and remove its finalizer, allowing the resource to be deleted.</td>
+      <td>gpt result</td>
+      <td>8B result</td>
+      <td>8B result</td>
+    </tr>
+
+  </tbody>
+</table>
+
+### Test 6 conclusion
+
+### Test 6 Detailed results
 
 <details>
   <summary>GPT-4o mini results</summary>
