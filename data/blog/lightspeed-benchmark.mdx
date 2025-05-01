@@ -11,7 +11,8 @@ summary: 'I am using OpenShift LightSpeed AI assistant to solve all the exercise
 
 The **OpenShift LightSpeed** AI Assistant is ridiculously useful.
 Even in its current tech preview phase, I’m already impressed.
-OpenShift admins and users are going to love it.
+OpenShift admins and users are going to love it: the ability to ask general OpenShift question, generate YAML resources and demand,
+and more importantly, **troubleshooting issue based on provided context (YAML, Logs, Events) is invaluable**.
 For quick tests or lab environments, you can get it up and running in
 minutes by connecting it to OpenAI’s cloud models - gpt-4o mini works perfectly well.
 For disconnected clusters or environments where data can’t leave the premises,
@@ -19,7 +20,11 @@ adding a GPU to your cluster and deploying a local LLM is the way to go, and it'
 A well-trained 8-billion parameter conversational model is more than
 sufficient, and **Granite 3.3-8B-Instruct** is my top pick at the time of writing.
 
-<TOCInline toc={props.toc} asDisclosure />
+This benchmark will demonstrate the power of OpenShift LightSpeed, and demonstrate that a narrow LLM with 8 billions parameters is enough.
+
+{/* <TOCInline toc={props.toc} asDisclosure /> */}
+
+<TOCInline toc={props.toc.filter((heading) => heading.depth <= 3)} asDisclosure />
 
 # Introduction
 
@@ -39,11 +44,11 @@ RAG (Retrieval-Augmented Generation) integration with OpenShift documentation, n
 
 Here are the models I used:
 
-- **OpenAI gpt-4o-mini**: Fast, powerful, affordable, and a leading option in the market. While OpenAI hasn’t disclosed the exact size of the model, it’s estimated to use ~8 billion parameters. It performed extremely well in this benchmark.
+- **OpenAI gpt-4o-mini**: Fast, powerful, affordable, and a leading option in the market. While OpenAI hasn’t disclosed the exact size of the model, it’s estimated to use **~8 billion parameters**. It performed extremely well in this benchmark.
 
-- **IBM Granite-3.3-8B-Instruct**: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At 8 billion parameters, this model is a solid peer to gpt-4o mini. (Spoiler: it performs just as well.)
+- **IBM Granite-3.3-8B-Instruct**: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At **8 billion parameters**, this model is a solid peer to gpt-4o mini. (Spoiler: it performs just as well.)
 
-- **IBM Granite-3.3-2B-Instruct**: At 2 billion parameters, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results. (Spoiler: not yet.).
+- **IBM Granite-3.3-2B-Instruct**: At **only 2 billion parameters**, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results. (Spoiler: not yet.).
 
 What this benchmark is not:
 
@@ -106,11 +111,11 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="2">[2](https://trbl-workshop.cszevaco.com/workshop/exercise_02)</td>
       <td rowspan="2">The container image has a typo in its entrypoint command (e.g., start vs. starttt), causing the pod to start and crash immediately.</td>
       <td rowspan="2">Full Deployment YAML + full Pod YAML + full Pod log + Pod events</td>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
     </tr>
     <tr>
-      <td>I can't edit the container image, how can I fix the issue?</td>
+      <td>I am not allowed to rebuild the container image. How can I fix the issue?</td>
       <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
     </tr>
 
@@ -118,12 +123,12 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="5">[3](https://trbl-workshop.cszevaco.com/workshop/exercise_03)</td>
       <td rowspan="5">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
       <td>Full Deployment YAML</td>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers.</td>
     </tr>
       <tr>
       <td rowspan="2">Adding the namespace resource quotas</td>
-      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>What value do you suggest I should use for the deployment limits and requests?</td>
       <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests.</td>
     </tr>
     <tr>
@@ -144,7 +149,7 @@ Note that LightSpeed needs some context (YAML, logs...) to provide troubleshooti
       <td rowspan="1">[4](https://trbl-workshop.cszevaco.com/workshop/exercise_04)</td>
       <td rowspan="1">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
       <td>Full Deployment YAML + full Service YAML + full Route YAML</td>
-      <td>Why is this route not working?</td>
+      <td>What is wrong with my route or service?</td>
       <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
     </tr>
 
@@ -200,7 +205,7 @@ That's the one you would want to dive a bit more first if needed.
 
 The gif below illustrate the use of OpenShift LightSpeed to try and solve test 1.
 
-INSERT DA GIF HERE
+![ols-usage-gif](/static/images/lightspeed-benchmark/ols2.gif)
 
 # Results
 
@@ -247,44 +252,71 @@ INSERT DA GIF HERE
     <tr>
       <td>Why is the pod not starting?</td>
       <td>The answer should highlight a possible typo in the image name, show the full image name, and mention other potential causes, while emphasizing the typo as a likely root cause.</td>
-      <td>gpt result aksajf; asdkljf adjsi dajk;a Dawning a_New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
-      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
-      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer provide a list of potential issues, including the actual existence of this specific "pacmad" image</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer suggest, among other things, to verify that the image exists</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer ask to check that the image is accessible, it doesn't directly suggest the image wouldn't exist</td>
     </tr>
         <tr>
       <td>There is a typo in the image name, what is the best approach to fix it?</td>
       <td>The answer should recommend editing the deployment, not the pod, to demonstrate understanding of the deployment-pod relationship.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer suggest to fix the deployment via a series of oc commands</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer suggest to edit the yaml file (via the oc edit command). The very impressive bit is that it says "Assuming the correct image name is quay.io/rh_ee_cschmitz/pacma**n**:latest". Yes, it infered the correct name, very impressive.</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer suggest to edit the yaml file, and provide an example assuming a fictitious image name</td>
     </tr>
   </tbody>
 </table>
 
 ### Test 1 conclusion
 
+gpt-4o-mini and granite3.2-8b and granite-3.2-2b all gave correct answers.
+
+**granite-3.2-8b** was particularly impressive as **it managed to infer the likely correct image name**. Bonus point.
+
 ### Test 1 Detailed results
+
+#### Prompt 1
 
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
 ![test1-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test1-prompt1-gpt4o-mini.webp)
-{/* </Zoom> */}
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test1-prompt1-grantite-3.2-8b](/static/images/lightspeed-benchmark/test1-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test1-prompt1-grantite-3.2-2b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 2
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test1-prompt2-gpt4o-mini](/static/images/lightspeed-benchmark/test1-prompt2-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test1-prompt2-grantite-3.2-8b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test1-prompt2-grantite-3.2-2b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-2b.webp)
 
 </details>
 
@@ -305,11 +337,11 @@ some images
     <tr>
       <td rowspan="2">The container image has a typo in its entrypoint command (e.g., start vs. starttt), causing the pod to start and crash immediately.</td>
       <td rowspan="2">Full Deployment YAML + full Pod YAML + full Pod log + Pod events</td>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
     </tr>
     <tr>
-      <td>I can't edit the container image, how can I fix the issue?</td>
+      <td>I am not allowed to rebuild the container image. How can I fix the issue?</td>
       <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
     </tr>
   </tbody>
@@ -329,50 +361,76 @@ some images
   </thead>
   <tbody>
     <tr>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify the typo in the container’s entrypoint, recommend checking the script or command, and suggest rebuilding the image or updating the entrypoint to fix it.</td>
-      <td>gpt result aksajf; asdkljf adjsi dajk;a Dawning a_New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
-      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
-      <td>8B result aksajf; asdkljf adjsi dajk;a Dawning New_Da ahu aeaf dfgs dfsg dfg adg ah adfh adfh adfh afh afh adfh afdh dfah dafh fadh afdh dfah adfh adf adfh</td>
+      <td style={{ backgroundColor: 'moccasin' }}>While an error in the NPM script is mentioned, a typo hasn't been suggested, and the wrong script "starttt" hasn't been mentioned</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The message suggest to check that the "starttt" script actually exists</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer suggest to check the "starttt" script actually exists, and suggest to use a "start" script if it is defined</td>
     </tr>
-        <tr>
-      <td>I can't edit the container image, how can I fix the issue?</td>
+    <tr>
+      <td>I am not allowed to rebuild the container image. How can I fix the issue?</td>
       <td>The answer should explain how to override the container’s command in the deployment specification to bypass the incorrect entrypoint without modifying the image.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'salmon' }}>The answer provide additional legitimate way to debug things, but does not provide the right solution</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer correctly suggest to edit the deployment with a "command" section set to the start script</td>
+      <td style={{ backgroundColor: 'salmon' }}>The answer suggest to rebuild the image, or mount a volume with the script, but does not provide the right answer</td>
     </tr>
   </tbody>
 </table>
 
 ### Test 2 conclusion
 
+On this test, only granite-3.2-8b managed to correctly solve this challenge. Now, I have to be honest, during my test and exploration, depending of the prompt used, or when using multiple prompts,
+it was always possible to guide gpt-4o-mini to the right answer, while it was a bit harder to get granite-3.2-2b to correctly edit the deployment (prompt 2). YMMV
+
 ### Test 2 Detailed results
+
+#### Prompt 1
 
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
-![frogspa](/static/images/devspaces/frog-spa2.webp)
-{/* </Zoom> */}
+![test2-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test2-prompt1-gpt4o-mini.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test2-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test2-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test2-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test2-prompt1-granite-3.2-2b.webp)
 
 </details>
 
-## Test 3 TODO
+#### Prompt 2
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test2-prompt2-gpt4o-mini](/static/images/lightspeed-benchmark/test2-prompt2-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test2-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test2-prompt2-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test2-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test2-prompt2-granite-3.2-2b.webp)
+
+</details>
+
+## Test 3
 
 ### Test 3 Summary problem statement
 
@@ -389,12 +447,12 @@ some images
         <tr>
       <td rowspan="5">The pod fails to start due to tight CPU and memory quotas in the namespace. Limits and requests must be tuned, but eventually, the deployment must be scaled down to one replica to fit within the quotas.</td>
       <td>Full Deployment YAML</td>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers.</td>
     </tr>
       <tr>
       <td rowspan="2">Adding the namespace resource quotas</td>
-      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>What value do you suggest I should use for the deployment limits and requests?</td>
       <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests.</td>
     </tr>
     <tr>
@@ -427,71 +485,167 @@ some images
   </thead>
   <tbody>
     <tr>
-      <td>Why is the pod not starting?</td>
+      <td>What's wrong?</td>
       <td>The answer should identify resource quotas as the cause and suggest setting appropriate CPU and memory requests and limits for the containers</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>2B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>Resource quotas, and lack of cpu/memory limits/requests is identified, suggesting to edit the deployment</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>Resource quotas, and lack of cpu/memory limits/requests is identified, suggesting to edit the deployment</td>
+      <td style={{ backgroundColor: 'salmon' }}>A problem in CPU resource is identified, but not in light of resource quotas. In addition, it suggest to directly edit the pod, instead of the deployment</td>
     </tr>
     <tr>
-      <td>What value do you suggest I should use for the limits and requests?</td>
+      <td>What value do you suggest I should use for the deployment limits and requests?</td>
       <td>The answer should suggest resource values that fit within the quotas and ideally account for two replicas, or at least highlight the need to consider replica count when sizing limits and requests..</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'moccasin' }}>It suggests to use value in light of the quota, but does not spontaneously take into account the two replicas</td>
+      <td style={{ backgroundColor: 'moccasin' }}>It suggests to use value in light of the quota, but does not spontaneously take into account the two replicas</td>
+      <td style={{ backgroundColor: 'salmon' }}>It suggests to use value in light of the quota, but does not spontaneously take into account the two replicas. Besides, it show a YAML example of the ResourceQuota resource, instead of the deployment</td>
     </tr>
     <tr>
       <td>Since I am running two replicas in the deployment, what value do you suggest I should use?</td>
       <td>The answer should clearly recommend CPU limits of 15m, memory limits of 15Mi, CPU requests of 10m, and memory requests of 7.5Mi..</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer is correctly dividing the limits and requests by two, and provide a deployment example</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The answer is correctly dividing the limits and requests by two, and provide a deployment example</td>
+      <td style={{ backgroundColor: 'salmon' }}>The answer is still focusing on editing the resourcequota, instead of the deployment</td>
     </tr>
     <tr>
       <td>Why is this pod not starting?</td>
       <td>The answer should explain that the pod is failing due to out-of-memory (OOM) or resource exhaustion, suggest increasing the namespace resource quotas or optimizing container resource usage, and ideally recommend scaling down to one replica.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A memory issue is identified, and it is suggested to increase the limits, or optimize the application.</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A memory issue is identified, and it is suggested to increase the limits, or optimize the application.</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A memory issue is identified, and it is suggested to increase the limits, or optimize the application.</td>
     </tr>
     <tr>
       <td>I can't optimize the application resources, and I can't change the resource quotas of the namespace. What are my other options?</td>
       <td>The answer should suggest scaling down the deployment to one replica to fit within the existing resource quotas.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'salmon' }}>Scaling down is not suggested</td>
+      <td style={{ backgroundColor: 'salmon' }}>Scaling down is not suggested</td>
+      <td style={{ backgroundColor: 'salmon' }}>Scaling down is not suggested</td>
     </tr>
   </tbody>
 </table>
 
 ### Test 3 conclusion
 
+This test is more challenging, requires multiple prompts with the AI assistant, and the last prompt didn't led to the correct answer. However, I know that during my investigation, I got several time the correct answer,
+scaling down the replica was suggested.
+This only highlight the sensitivity of the answer based on slightly different prompt, or context.
+
 ### Test 3 Detailed results
+
+#### Prompt 1
 
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
-![frogspa](/static/images/devspaces/frog-spa2.webp)
-{/* </Zoom> */}
+![test3-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test3-prompt1-gpt4o-mini.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test3-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test3-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt1-granite-3.2-2b.webp)
 
 </details>
 
-## Test 4 TODO
+#### Prompt 2
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test3-prompt2-gpt4o-mini](/static/images/lightspeed-benchmark/test3-prompt2-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test3-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt2-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test3-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt2-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 3
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test3-prompt3-gpt4o-mini](/static/images/lightspeed-benchmark/test3-prompt3-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test3-prompt3-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt3-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test3-prompt3-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt3-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 4
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test3-prompt4-gpt4o-mini](/static/images/lightspeed-benchmark/test3-prompt4-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test3-prompt4-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt4-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test3-prompt4-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt4-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 5
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test3-prompt5-gpt4o-mini](/static/images/lightspeed-benchmark/test3-prompt5-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test3-prompt5-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt5-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test3-prompt5-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt5-granite-3.2-2b.webp)
+
+</details>
+
+## Test 4
 
 ### Test 4 Summary problem statement
 
@@ -508,7 +662,7 @@ some images
     <tr>
       <td rowspan="1">The route is unavailable due to two misconfigurations in the service: an incorrect pod selector and an invalid port mapping.</td>
       <td>Full Deployment YAML + full Service YAML + full Route YAML</td>
-      <td>Why is this route not working?</td>
+      <td>What is wrong with my route or service?</td>
       <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
     </tr>
   </tbody>
@@ -528,43 +682,47 @@ some images
   </thead>
   <tbody>
     <tr>
-      <td>Why is this route not working?</td>
+      <td>What is wrong with my route or service?</td>
       <td>The answer should identify both the incorrect pod selector and the invalid service port configuration as the causes of the route being inaccessible.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>2B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The pod selector mismatch, and the port configuration issue are both detected, and an updated yaml resource is suggested.</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The pod selector mismatch, and the port configuration issue are both detected</td>
+      <td style={{ backgroundColor: 'moccasin' }}>The answer is only focusing on the port mismatch, and in a desorganized way</td>
     </tr>
   </tbody>
 </table>
 
 ### Test 4 conclusion
 
+To me, and many colleague, the result of this test are very impressive, as it detected multiple problems at one. gpt-4o-mini got some extra points as it immediatly suggested
+some fixes in the service yaml. It would require an extra prompt to get granite-3.2-8b to provide the YAML. granite-3.2-2b is laking a bit of reasoning power, and this was a general
+observation when experimenting with test 4 and granite-3.2-2b.
+
 ### Test 4 Detailed results
+
+#### Prompt 1
 
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
-![frogspa](/static/images/devspaces/frog-spa2.webp)
-{/* </Zoom> */}
+![test4-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test4-prompt1-gpt4o-mini.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test4-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test4-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test4-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test4-prompt1-granite-3.2-2b.webp)
 
 </details>
 
-## Test 5 TODO
+## Test 5
 
 ### Test 5 Summary problem statement
 
@@ -608,48 +766,73 @@ some images
     <tr>
       <td>Why is the pod not deploying?</td>
       <td>The answer should identify an issue with the node selector preventing pod scheduling and suggest reviewing or correcting the node selector configuration</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>2B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The node selector is mentioned as a potential issues, among other things</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The node selector is mentioned as a potential issues, among other things</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>The node selector is mentioned as a potential issues, among other things</td>
     </tr>
         <tr>
       <td>There is a policy that forces the use of node selector in the deployment definition. Based on the node definition attached, can you suggest some labels that are likely to be presents in all nodes, so that my pod can be scheduled everywhere?</td>
       <td>The answer should provide a corrected node selector, ideally with clear instructions and an example shown in YAML format.</td>
-      <td>gpt result</td>
-      <td>8B result</td>
-      <td>8B result</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A list of sensible labels are suggested for the node selector</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A list of sensible labels are suggested for the node selector</td>
+      <td style={{ backgroundColor: 'lightgreen' }}>A list of sensible labels are suggested for the node selector</td>
     </tr>
   </tbody>
 </table>
 
 ### Test 5 conclusion
 
+All models performed correctly against this test.
+
 ### Test 5 Detailed results
+
+#### Prompt 1
 
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
-![frogspa](/static/images/devspaces/frog-spa2.webp)
-{/* </Zoom> */}
+![test5-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test5-prompt1-gpt4o-mini.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test5-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test5-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test5-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test5-prompt1-granite-3.2-2b.webp)
 
 </details>
 
-## Test 6 TODO
+#### Prompt 2
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test5-prompt2-gpt4o-mini](/static/images/lightspeed-benchmark/test5-prompt2-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test5-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test5-prompt2-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test5-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test5-prompt2-granite-3.2-2b.webp)
+
+</details>
+
+## Test 6
 
 ### Test 6 Summary problem statement
 
@@ -760,25 +943,142 @@ some images
 
 ### Test 6 Detailed results
 
+#### Prompt 1
+
 <details>
   <summary>GPT-4o mini results</summary>
 
-{/* <Zoom> */}
-![frogspa](/static/images/devspaces/frog-spa2.webp)
-{/* </Zoom> */}
+![test6-prompt1-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt1-gpt4o-mini.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-8B-Instruct results</summary>
 
-some images
+![test6-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
   <summary>Granite-3.3-2B-Instruct results</summary>
 
-some images
+![test6-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt1-granite-3.2-2b.webp)
 
 </details>
+
+#### Prompt 2
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test6-prompt2-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt2-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test6-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt2-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test6-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt2-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 3
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test6-prompt3-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt3-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test6-prompt3-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt3-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test6-prompt3-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt3-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 4
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test6-prompt4-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt4-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test6-prompt4-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt4-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test6-prompt4-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt4-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 5
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test6-prompt5-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt5-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test6-prompt5-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt5-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test6-prompt5-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt5-granite-3.2-2b.webp)
+
+</details>
+
+#### Prompt 6
+
+<details>
+  <summary>GPT-4o mini results</summary>
+
+![test6-prompt6-gpt4o-mini](/static/images/lightspeed-benchmark/test6-prompt6-gpt4o-mini.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-8B-Instruct results</summary>
+
+![test6-prompt6-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt6-granite-3.2-8b.webp)
+
+</details>
+
+<details>
+  <summary>Granite-3.3-2B-Instruct results</summary>
+
+![test6-prompt6-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt6-granite-3.2-2b.webp)
+
+</details>
+
+# Conclusion
