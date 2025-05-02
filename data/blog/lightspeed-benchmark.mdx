@@ -17,7 +17,7 @@ minutes by connecting it to OpenAI’s cloud models - gpt-4o mini works perfectl
 For disconnected clusters or environments where data can’t leave the premises,
 adding a GPU to your cluster and deploying a local LLM is the way to go, and it's easy.
 A well-trained 8-billion parameter conversational model is more than
-sufficient, and **Granite 3.3-8B-Instruct** is my top pick at the time of writing.
+sufficient, and **Granite 3.2-8B-Instruct** is my top pick at the time of writing.
 
 This benchmark will demonstrate the power of OpenShift LightSpeed, and demonstrate that a narrow LLM with 8 billions parameters is enough.
 
@@ -43,9 +43,9 @@ Here are the models I used:
 
 - **OpenAI gpt-4o-mini**: Fast, powerful, affordable, and a leading option in the market. While OpenAI hasn’t disclosed the exact size of the model, it’s estimated to use **~8 billion parameters**. It performed extremely well in this benchmark.
 
-- **IBM Granite-3.3-8B-Instruct**: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At **8 billion parameters**, this model is a solid peer to gpt-4o mini. In this benchmark, it was deployed on a GPU (Spoiler: it performs just as well.)
+- **IBM Granite-3.2-8B-Instruct**: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At **8 billion parameters**, this model is a solid peer to gpt-4o mini. In this benchmark, it was deployed on a GPU (Spoiler: it performs just as well.)
 
-- **IBM Granite-3.3-2B-Instruct**: At **only 2 billion parameters**, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results (Spoiler: not yet). In this benchmark, it was deployed on a GPU.
+- **IBM Granite-3.2-2B-Instruct**: At **only 2 billion parameters**, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results (Spoiler: not yet). In this benchmark, it was deployed on a GPU.
 
 What this benchmark is not:
 
@@ -71,8 +71,8 @@ The answers were assessed based on their accuracy and effectiveness in helping r
 
 For this benchmark,
 
-- I used OpenShift LightSpeed Operator in version 0.3.3, still in tech preview at time of writing. Running on OpenShift 4.18.5
-- I used vLLM version: 0.8.4 with GPU support (event for Granite 3.3-2b model)
+- I used OpenShift LightSpeed Operator in version 0.3.2, still in tech preview at time of writing. Running on OpenShift 4.18.5
+- I used vLLM version: 0.8.4 with GPU support (event for Granite 3.2-2b model)
 - The chat history was cleared between each test to avoid context issues.
 
 The table below summarizes the six tests, the context provided
@@ -239,8 +239,8 @@ The gif below illustrate the use of OpenShift LightSpeed to try and solve test 1
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -281,14 +281,14 @@ gpt-4o-mini and granite3.2-8b and granite-3.2-2b all gave correct answers.
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test1-prompt1-grantite-3.2-8b](/static/images/lightspeed-benchmark/test1-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test1-prompt1-grantite-3.2-2b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-2b.webp)
 
@@ -304,14 +304,14 @@ gpt-4o-mini and granite3.2-8b and granite-3.2-2b all gave correct answers.
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test1-prompt2-grantite-3.2-8b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test1-prompt2-grantite-3.2-2b](/static/images/lightspeed-benchmark/test1-prompt2-granite-3.2-2b.webp)
 
@@ -350,8 +350,8 @@ gpt-4o-mini and granite3.2-8b and granite-3.2-2b all gave correct answers.
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -391,14 +391,14 @@ it was always possible to guide gpt-4o-mini to the right answer, while it was a 
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test2-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test2-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test2-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test2-prompt1-granite-3.2-2b.webp)
 
@@ -414,14 +414,14 @@ it was always possible to guide gpt-4o-mini to the right answer, while it was a 
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test2-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test2-prompt2-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test2-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test2-prompt2-granite-3.2-2b.webp)
 
@@ -474,8 +474,8 @@ it was always possible to guide gpt-4o-mini to the right answer, while it was a 
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -537,14 +537,14 @@ This only highlight the sensitivity of the answer based on slightly different pr
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test3-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test3-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt1-granite-3.2-2b.webp)
 
@@ -560,14 +560,14 @@ This only highlight the sensitivity of the answer based on slightly different pr
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test3-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt2-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test3-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt2-granite-3.2-2b.webp)
 
@@ -583,14 +583,14 @@ This only highlight the sensitivity of the answer based on slightly different pr
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test3-prompt3-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt3-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test3-prompt3-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt3-granite-3.2-2b.webp)
 
@@ -606,14 +606,14 @@ This only highlight the sensitivity of the answer based on slightly different pr
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test3-prompt4-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt4-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test3-prompt4-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt4-granite-3.2-2b.webp)
 
@@ -629,14 +629,14 @@ This only highlight the sensitivity of the answer based on slightly different pr
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test3-prompt5-granite-3.2-8b](/static/images/lightspeed-benchmark/test3-prompt5-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test3-prompt5-granite-3.2-2b](/static/images/lightspeed-benchmark/test3-prompt5-granite-3.2-2b.webp)
 
@@ -671,8 +671,8 @@ This only highlight the sensitivity of the answer based on slightly different pr
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -706,14 +706,14 @@ observation when experimenting with test 4 and granite-3.2-2b.
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test4-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test4-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test4-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test4-prompt1-granite-3.2-2b.webp)
 
@@ -753,8 +753,8 @@ observation when experimenting with test 4 and granite-3.2-2b.
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -793,14 +793,14 @@ All models performed correctly against this test.
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test5-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test5-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test5-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test5-prompt1-granite-3.2-2b.webp)
 
@@ -816,14 +816,14 @@ All models performed correctly against this test.
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test5-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test5-prompt2-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test5-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test5-prompt2-granite-3.2-2b.webp)
 
@@ -881,8 +881,8 @@ All models performed correctly against this test.
       <th>Prompt used</th>
       <th>Expected results</th>
       <th>GPT-4o mini</th>
-      <th>Granite-3.3-8B-Instruct</th>
-      <th>Granite-3.3-2B-Instruct</th>
+      <th>Granite-3.2-8B-Instruct</th>
+      <th>Granite-3.2-2B-Instruct</th>
 
     </tr>
 
@@ -953,14 +953,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt1-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt1-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt1-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt1-granite-3.2-2b.webp)
 
@@ -976,14 +976,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt2-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt2-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt2-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt2-granite-3.2-2b.webp)
 
@@ -999,14 +999,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt3-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt3-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt3-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt3-granite-3.2-2b.webp)
 
@@ -1022,14 +1022,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt4-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt4-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt4-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt4-granite-3.2-2b.webp)
 
@@ -1045,14 +1045,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt5-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt5-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt5-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt5-granite-3.2-2b.webp)
 
@@ -1068,14 +1068,14 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 </details>
 
 <details>
-  <summary>Granite-3.3-8B-Instruct results</summary>
+  <summary>Granite-3.2-8B-Instruct results</summary>
 
 ![test6-prompt6-granite-3.2-8b](/static/images/lightspeed-benchmark/test6-prompt6-granite-3.2-8b.webp)
 
 </details>
 
 <details>
-  <summary>Granite-3.3-2B-Instruct results</summary>
+  <summary>Granite-3.2-2B-Instruct results</summary>
 
 ![test6-prompt6-granite-3.2-2b](/static/images/lightspeed-benchmark/test6-prompt6-granite-3.2-2b.webp)
 
