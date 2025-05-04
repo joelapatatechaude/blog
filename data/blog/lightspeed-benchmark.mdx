@@ -43,7 +43,7 @@ Here are the models I used:
 
 - **OpenAI gpt-4o-mini**: Fast, powerful, affordable, and a leading option in the market. While OpenAI hasn’t disclosed the exact size of the model, it’s estimated to use **~8 billion parameters**. It performed extremely well in this benchmark.
 
-- **IBM Granite-3.2-8B-Instruct**: Fully open source and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At **8 billion parameters**, this model is a solid peer to gpt-4o mini. In this benchmark, it was deployed on a GPU (Spoiler: it performs just as well.)
+- **IBM Granite-3.2-8B-Instruct**: Fully open source (beware of some other models that claimed to be open source, where it is actually not the case. Granite is truly Open Source) and indemnified, two characteristics that appeal to organizations running LLMs in their own data centers. At **8 billion parameters**, this model is a solid peer to gpt-4o mini. In this benchmark, it was deployed on a GPU (Spoiler: it performs just as well.)
 
 - **IBM Granite-3.2-2B-Instruct**: At **only 2 billion parameters**, this model enters CPU-hosted territory. In my CPU tests, it's slow, too slow for a great user experience. But I included it (running on GPU) just to test whether small LLMs can still deliver good results (Spoiler: not yet). In this benchmark, it was deployed on a GPU.
 
@@ -51,7 +51,7 @@ What this benchmark is not:
 
 - Not a speed or concurrency test. Both Granite models ran on a single GPU and were fast enough for single-user usage.
 
-- Not a full LLM showdown. The goal is to showcase LightSpeed’s value even on smaller models, not rank every model on the market.
+- Not a full LLM showdown. The goal is to showcase LightSpeed’s value even on smaller models in the 8B range, not rank every model on the market against OpenShift activities.
 
 - Not a comparison of LLM servers solutions. I used the open-source vLLM server, where Red Hat (via Neural Magic) is now the top contributor. Quantization support is still maturing, and other servers might be better for large quantized models.
 
@@ -1083,12 +1083,19 @@ yield different results, YMMV. granite-3.2-2b just doesn't have the reasoning ca
 
 # Conclusion
 
-This study highlight a few things:
+This benchmark highlights several key insights:
 
-1. OpenShift AI assistant is already incredibly useful. It will only get better as it goes into General Availability with additional features. Bear in mind that the LLM is not trained against OpenShift,
-   but it leverage RAG technique against the embeded OpenShift documentation to be OpenShift aware.
-2. A self hosted 8 billions LLM with good reasoning capabilities is plenty enough for OpenShift users that can't send their queries to a cloud hosted LLM provider (compliance, disconnected)
-   8B parameters easily fit in high end general consumer GPU / low end enterprise GPU. Context memory, and of course concurrency must also be taken into account when sizing the memory requirements.
-3. Too small LLM (2Billions parameters) are not yet fit for purpose. The AI industry is moving so fast that this might change in the near future.
-4. Prompting is not an exact science in general, it remains the case with LightSpeed. Rephrasing questions differently does yield different results. Having say that, on granite-3.2-8b, or gpt-4o-mini, it has always
-   been possible to drive LightSpeed toward a helpful answer.
+1. OpenShift LightSpeed is already a powerful assistant for OpenShift users, even in its current tech preview state.
+   While the underlying LLM isn’t trained specifically on OpenShift, it uses Retrieval-Augmented Generation (RAG)
+   to tap into embedded OpenShift documentation, making it remarkably context-aware.
+
+2. A self-hosted 8Billions parameter model, like Granite 3.x, offers strong reasoning capabilities and is more than sufficient for
+   organizations that can’t use cloud-hosted LLMs due to compliance or disconnected environments.
+   These models fit comfortably on high-end consumer GPUs or entry-level enterprise GPUs.
+   However, remember that memory sizing must also account for context window and concurrency requirements.
+
+3. Smaller models (e.g., 2B parameters) are probably not reliable enough at this stage for effective troubleshooting,
+   though rapid advances in the AI space may change this soon.
+
+4. Prompting still requires experience. As with most LLM-based tools, phrasing matters. Results vary depending on how questions are asked.
+   That said, both GPT-4o-mini and Granite-3.2-8B consistently allowed LightSpeed to be steered toward useful, actionable answers.
