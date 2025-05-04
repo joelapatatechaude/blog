@@ -6,6 +6,12 @@ import Image from './Image'
 import CustomLink from './Link'
 import TableWrapper from './TableWrapper'
 
+import Zoom from 'react-medium-image-zoom'
+import 'react-medium-image-zoom/dist/styles.css'
+
+import { useMemo } from 'react'
+import { getMDXComponent } from 'mdx-bundler/client'
+
 export const components: MDXComponents = {
   Image,
   TOCInline,
@@ -13,4 +19,5 @@ export const components: MDXComponents = {
   pre: Pre,
   table: TableWrapper,
   BlogNewsletterForm,
+  Zoom,
 }
