@@ -1,6 +1,6 @@
 ---
 title: 'Stop Treating GPUs Like Permanent Infrastructure'
-date: '2025-05-13'
+date: '2026-05-13'
 tags: ['openshift', 'AI', 'HCP', 'hosted-control-planes', 'hybrid', 'sovereignty']
 draft: false
 summary: 'A sovereign hybrid AI pattern with OpenShift Hosted Control Planes — keep the control plane local, use cloud GPU workers elastically, and stop overbuilding static accelerator infrastructure.'
@@ -34,7 +34,7 @@ This aligns with where HCP is heading: smarter control-plane sizing and autoscal
 
 ---
 
-## Why this matters
+# Why this matters
 
 I keep seeing the same pattern in sovereign AI conversations.
 
@@ -64,7 +64,7 @@ That is where OpenShift Hosted Control Planes becomes really interesting.
 
 ---
 
-## The architectural idea
+# The architectural idea
 
 The idea is simple, but it needs to be stated carefully:
 
@@ -86,7 +86,7 @@ This aligns with where Hosted Control Planes is heading. OpenShift 4.21 introduc
 
 ---
 
-## Why accelerator evolution matters
+# Why accelerator evolution matters
 
 There is another reason I am cautious about treating GPUs as permanent infrastructure: accelerator technology is moving very quickly.
 
@@ -108,7 +108,7 @@ A hybrid pattern gives teams a way to experiment first. Use elastic capacity to 
 
 ---
 
-## Why not just build all GPUs on-prem?
+# Why not just build all GPUs on-prem?
 
 Sometimes you should.
 
@@ -125,7 +125,7 @@ Buying permanent infrastructure before answering those questions can be prematur
 
 ---
 
-## Why not just use a native cloud AI service?
+# Why not just use a native cloud AI service?
 
 Native cloud AI services can be useful. They are fast to consume and operationally convenient.
 
@@ -143,7 +143,7 @@ This is where hybrid OpenShift capability is invaluable. The goal is not just to
 
 ---
 
-## Creating the hosted cluster
+# Creating the hosted cluster
 
 Before worrying about OpenShift AI, GPUs, or vLLM, the first step is to create the hosted OpenShift cluster itself.
 
@@ -181,7 +181,7 @@ I start with two standard EC2 replicas — enough to deploy operators and worklo
 
 ---
 
-## What about networking?
+# What about networking?
 
 When connecting on-prem infrastructure with cloud infrastructure, networking becomes a central discussion point.
 
@@ -200,7 +200,7 @@ The important detail: use `--snat-subnet-routes=false` on both subnet routers. W
 
 ---
 
-## Running OpenShift AI on the hosted cluster
+# Running OpenShift AI on the hosted cluster
 
 Once the hosted cluster is available and the AWS worker node pool is running, the AI layer becomes straightforward.
 
@@ -223,7 +223,7 @@ The GPU node pool can be tainted with `nvidia.com/gpu:NoSchedule` to ensure only
 
 ---
 
-## Why this matters for federal government
+# Why this matters for federal government
 
 Federal government architecture is shaped by constraints:
 
@@ -249,7 +249,7 @@ This is the kind of pattern that becomes more important as organisations move fr
 
 ---
 
-## Why this is a Red Hat conversation
+# Why this is a Red Hat conversation
 
 This is not only a Kubernetes trick.
 
@@ -266,7 +266,7 @@ That means teams are not learning a completely different platform every time the
 
 ---
 
-## Conclusion
+# Conclusion
 
 When thinking about hybrid workloads, including AI workloads, the questions are:
 
