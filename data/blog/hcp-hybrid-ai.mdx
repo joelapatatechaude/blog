@@ -30,6 +30,15 @@ The PoC leverages the Hosted Control Plane (HCP) capabilities in OpenShift. This
 
 This aligns with where HCP is heading: smarter control-plane sizing and autoscaling node pools from and to zero, initially introduced for ROSA with HCP.
 
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/gpu-cloud-burst.png"
+    alt="Hybrid architecture: on-prem control plane connected to elastic cloud GPU capacity"
+    width="800"
+  />
+</figure>
+
 <TOCInline toc={props.toc} asDisclosure />
 
 ---
@@ -39,6 +48,15 @@ This aligns with where HCP is heading: smarter control-plane sizing and autoscal
 I keep seeing the same pattern in sovereign AI conversations.
 
 Everyone wants AI. Everyone wants control. Everyone wants GPUs. But nobody can afford to buy a pile of GPUs that sit mostly idle, especially when the accelerator market is moving so quickly.
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/gpu-dust.png"
+    alt="Expensive GPU servers sitting idle in a data center"
+    width="800"
+  />
+</figure>
 
 That's the problem: utilisation risk today, obsolescence risk tomorrow.
 
@@ -85,6 +103,15 @@ The expensive and fast-moving part of the environment (the GPU worker capacity) 
 ---
 
 # Why accelerator evolution matters
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/gpu-evolution.png"
+    alt="GPU accelerator generations evolving rapidly"
+    width="800"
+  />
+</figure>
 
 There's another reason I'm cautious about treating GPUs as permanent infrastructure: accelerator technology is moving fast. Really fast.
 
@@ -142,6 +169,15 @@ This is where hybrid OpenShift shines. The goal isn't just to consume compute â€
 ---
 
 # Creating the hosted cluster
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/homelab.png"
+    alt="Home lab setup for the hosted control plane PoC"
+    width="800"
+  />
+</figure>
 
 Before worrying about OpenShift AI, GPUs, or vLLM, the first step is to create the hosted OpenShift cluster itself.
 
