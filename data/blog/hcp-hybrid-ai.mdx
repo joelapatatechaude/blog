@@ -40,7 +40,7 @@ I keep seeing the same pattern in sovereign AI conversations.
 
 Everyone wants AI. Everyone wants control. Everyone wants GPUs. But nobody can afford to buy a pile of GPUs that sit mostly idle, especially when the accelerator market is moving so quickly.
 
-That is the problem: utilisation risk today, and obsolescence risk tomorrow.
+That's the problem: utilisation risk today, obsolescence risk tomorrow.
 
 Some AI workloads are permanent, but many are prone to burst patterns:
 
@@ -51,7 +51,7 @@ Some AI workloads are permanent, but many are prone to burst patterns:
 - Temporary test and dev environments
 - Temporary GPU-backed validation
 
-For those workloads, permanent GPU infrastructure becomes an expensive answer to a temporary problem. It can also lock teams into today's accelerator choices before they really understand tomorrow's workload requirements.
+For those workloads, permanent GPU infrastructure is an expensive answer to a temporary problem. It also risks locking teams into today's accelerator choices before they really understand what tomorrow's workloads will need.
 
 So I wanted to test a different model:
 
@@ -66,7 +66,7 @@ That is where OpenShift Hosted Control Planes becomes really interesting.
 
 # The architectural idea
 
-The idea is simple, but it needs to be stated carefully:
+The idea is simple, but worth stating carefully:
 
 > Keep the control-plane anchor local. Treat cloud workers as elastic execution capacity.
 
@@ -82,25 +82,23 @@ In my PoC:
 
 The expensive and fast-moving part of the environment (the GPU worker capacity) becomes transient, while the local part (the OpenShift control plane, cluster state, lifecycle control, and governance anchor) remains on the bare-metal management cluster.
 
-This aligns with where Hosted Control Planes is heading. OpenShift 4.21 introduces smarter resource-management capabilities for HCP, including dynamic control-plane scaling and autoscaling node pools from and to zero.
-
 ---
 
 # Why accelerator evolution matters
 
-There is another reason I am cautious about treating GPUs as permanent infrastructure: accelerator technology is moving very quickly.
+There's another reason I'm cautious about treating GPUs as permanent infrastructure: accelerator technology is moving fast. Really fast.
 
 The current enterprise AI conversation is dominated by high-end GPUs such as H100 and H200. Those are powerful accelerators, and they will remain useful for a long time. But the market is not standing still.
 
-Newer accelerators are increasingly designed specifically for AI workloads, with improvements around inference efficiency, memory bandwidth, power consumption, interconnects, and price/performance. This matters because GPUs were not originally designed for AI. They became incredibly useful for AI because the parallel computation model mapped well to deep learning workloads. Now the market is moving toward accelerators that are more explicitly optimised for AI.
+Newer accelerators are increasingly designed specifically for AI workloads, with improvements around inference efficiency, memory bandwidth, power consumption, interconnects, and price/performance. This matters because GPUs were not originally designed for AI. They became incredibly useful for AI because the parallel computation model mapped well to deep learning workloads. Now the market is moving toward accelerators that are more explicitly optimised for AI, especially inference workload.
 
 So what happens to the H100 and H200 infrastructure organisations are buying today?
 
-It will not suddenly become useless. It will become tiered capacity. Some of it will continue to be useful for training, fine-tuning, inference, internal platforms, and less demanding workloads. But some of it may also become expensive capacity that is no longer the best fit for newer models, newer serving patterns, or better performance-per-watt options.
+It won't suddenly become useless. It'll become tiered capacity. Some of it will continue to be useful for training, fine-tuning, inference, internal platforms, and less demanding workloads. But some of it may also become expensive capacity that is no longer the best fit for newer models, newer serving patterns, or better performance-per-watt options.
 
-That is the risk.
+That's the risk.
 
-The point is not "do not buy GPUs". The point is:
+I'm not saying "don't buy GPUs". The point is:
 
 > Do not buy permanent GPU estates before you understand your workload profile.
 
@@ -108,7 +106,7 @@ A hybrid pattern gives teams a way to experiment first. Use elastic capacity to 
 
 ---
 
-# Why not just build all GPUs on-prem?
+# Why not keep all GPU infrastructure on-prem?
 
 Sometimes you should.
 
@@ -127,7 +125,7 @@ Buying permanent infrastructure before answering those questions can be prematur
 
 # Why not just use a native cloud AI service?
 
-Native cloud AI services can be useful. They are fast to consume and operationally convenient.
+Native cloud AI services can be useful — they're fast to consume and operationally convenient.
 
 But in federal government and regulated organisations, the questions are usually more complicated:
 
@@ -139,7 +137,7 @@ But in federal government and regulated organisations, the questions are usually
 - Can we use the same platform pattern on-prem and in cloud?
 - Can security teams apply consistent policy?
 
-This is where hybrid OpenShift capability is invaluable. The goal is not just to consume compute. The goal is to build a consistent hybrid platform that caters to a variety of scenarios. OpenShift AI running on OpenShift gives you a more portable pattern than tying every experiment to a single cloud service abstraction.
+This is where hybrid OpenShift shines. The goal isn't just to consume compute — it's to build a consistent platform that works across a variety of scenarios. OpenShift AI running on OpenShift gives you a more portable pattern than tying every experiment to a single cloud service abstraction.
 
 ---
 
@@ -261,7 +259,7 @@ The hosted cluster can run:
 The workflow looks like this:
 
 1. Bring up the hosted cluster.
-2. Scale up an AWS GPU worker node pool (e.g. `g6.xlarge` with NVIDIA L4).
+2. Scale up an AWS GPU worker node pool (e.g. `g6.xlarge` with NVIDIA L4 as a cost-effective GPU node to get started with).
 3. Install the NVIDIA GPU Operator and Node Feature Discovery — the GPU is automatically detected, the driver compiled, and the node made schedulable for GPU workloads.
 4. Install OpenShift AI and deploy inference or training workloads.
 5. Scale down the GPU worker node pool when finished — or better, use the dynamic node pool scaling features recently introduced.
@@ -298,9 +296,9 @@ This is the kind of pattern that becomes more important as organisations move fr
 
 # Why this is a Red Hat conversation
 
-This is not only a Kubernetes trick.
+This isn't just a Kubernetes trick.
 
-The value comes from platform consistency:
+The real value is platform consistency:
 
 - OpenShift on bare metal
 - OpenShift hosted clusters
@@ -309,7 +307,7 @@ The value comes from platform consistency:
 - NVIDIA GPU Operator for accelerator enablement
 - vLLM for inference workloads
 
-That means teams are not learning a completely different platform every time they move between on-prem and cloud. And for federal organisations trying to adopt AI without creating another isolated platform silo, that really matters.
+Teams aren't learning a completely different platform every time they move between on-prem and cloud. For federal organisations trying to adopt AI without creating yet another platform silo, that matters a lot.
 
 ---
 
