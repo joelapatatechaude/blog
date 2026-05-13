@@ -227,7 +227,7 @@ spec:
     storage:
       files:
       - contents:
-          source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKIyBBZGQgcm91dGUgdG8gQVdTIFZQQyB2aWEgb24tcHJlbSBzaWRla2ljawppZiBbICIkMiIgPSAidXAiIF07IHRoZW4KICBpcCByb3V0ZSBhZGQgMTAuMC4wLjAvMTYgdmlhIDE5Mi4xNjguNi4xIGRldiBici1leCAyPi9kZXYvbnVsbCB8fCB0cnVlCiAgaXAgcm91dGUgYWRkIDEwLjEuMC4wLzE2IHZpYSAxOTIuMTY4LjYuMSBkZXYgYnItZXggMj4vZGV2L251bGwgfHwgdHJ1ZQpmaQo=
+          source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKaWYgWyAiJDIiID0gInVwIiBdOyB0aGVuCiAgaXAgcm91dGUgYWRkIDEwLjEuMC4wLzE2IHZpYSAxOTIuMTY4LjYuMSBkZXYgYnItZXggMj4vZGV2L251bGwgfHwgdHJ1ZQpmaQo=
         mode: 0755
         path: /etc/NetworkManager/dispatcher.d/10-aws-route
 ```
@@ -237,7 +237,6 @@ The base64-encoded script simply adds the routes when an interface comes up:
 ```bash
 #!/bin/bash
 if [ "$2" = "up" ]; then
-  ip route add 10.0.0.0/16 via 192.168.6.1 dev br-ex 2>/dev/null || true
   ip route add 10.1.0.0/16 via 192.168.6.1 dev br-ex 2>/dev/null || true
 fi
 ```
