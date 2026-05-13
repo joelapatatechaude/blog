@@ -189,12 +189,60 @@ In an enterprise or government AWS environment, approved private connectivity pa
 
 For a quick PoC from a home lab, something like Tailscale with subnet routers can bridge on-prem with AWS instances. Be mindful that this is typically not an approved network path at work — but it is a practical way to validate the pattern before investing in production connectivity.
 
-The key requirements are:
+From a device connected to the same network the bare-metal OpenShift cluster is running on (in this case `192.168.6.0/24`), create a local subnet router:
 
-- A subnet router on the local side advertising the on-prem network (e.g. `192.168.6.0/24`).
-- A subnet router in the AWS VPC advertising the VPC CIDR (e.g. `10.1.0.0/16`).
-- IP forwarding enabled on both subnet routers.
-- Static routes on the OpenShift nodes so they know how to reach the AWS VPC, typically applied via a MachineConfig with a NetworkManager dispatcher script.
+```bash
+sudo tailscale up \
+    --accept-routes \
+    --advertise-routes=192.168.6.0/24 \
+    --hostname=local-subnet-router \
+    --snat-subnet-routes=false
+```
+
+For the opposite direction, create an EC2 instance (a `t3.small` or smaller is enough) in the VPC hosting the remote workers:
+
+```bash
+sudo tailscale up \
+    --advertise-routes=10.1.0.0/16 \
+    --accept-routes \
+    --snat-subnet-routes=false \
+    --hostname=aws-subnet-router
+```
+
+Subnet routes must be approved on the Tailscale console, either manually or via a Tailscale policy.
+
+The on-prem OpenShift nodes need a route to the AWS VPC. This can be applied via a MachineConfig with a NetworkManager dispatcher script:
+
+```yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: master
+  name: 99-aws-vpc-route-master
+spec:
+  config:
+    ignition:
+      version: 3.2.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,IyEvYmluL2Jhc2gKIyBBZGQgcm91dGUgdG8gQVdTIFZQQyB2aWEgb24tcHJlbSBzaWRla2ljawppZiBbICIkMiIgPSAidXAiIF07IHRoZW4KICBpcCByb3V0ZSBhZGQgMTAuMC4wLjAvMTYgdmlhIDE5Mi4xNjguNi4xIGRldiBici1leCAyPi9kZXYvbnVsbCB8fCB0cnVlCiAgaXAgcm91dGUgYWRkIDEwLjEuMC4wLzE2IHZpYSAxOTIuMTY4LjYuMSBkZXYgYnItZXggMj4vZGV2L251bGwgfHwgdHJ1ZQpmaQo=
+        mode: 0755
+        path: /etc/NetworkManager/dispatcher.d/10-aws-route
+```
+
+The base64-encoded script simply adds the routes when an interface comes up:
+
+```bash
+#!/bin/bash
+if [ "$2" = "up" ]; then
+  ip route add 10.0.0.0/16 via 192.168.6.1 dev br-ex 2>/dev/null || true
+  ip route add 10.1.0.0/16 via 192.168.6.1 dev br-ex 2>/dev/null || true
+fi
+```
+
+IP forwarding (`net.ipv4.ip_forward=1`) must also be enabled on both subnet routers.
 
 The important detail: use `--snat-subnet-routes=false` on both subnet routers. Without this, source IPs are NATed and the OVN Geneve tunnels between the hosted control plane and the workers will not function correctly.
 
