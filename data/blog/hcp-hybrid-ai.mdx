@@ -118,7 +118,7 @@ There's another reason I'm cautious about treating GPUs as permanent infrastruct
   />
 </figure>
 
-The current enterprise AI conversation is dominated by high-end GPUs such as [H100](https://www.nvidia.com/en-us/data-center/h100/) and H200. Those are powerful accelerators, and they will remain useful for a long time. But the market is not standing still.
+The current enterprise AI conversation is dominated by high-end GPUs such as [H100](https://www.nvidia.com/en-us/data-center/h100/) and [H200](https://www.nvidia.com/en-us/data-center/h200/). Those are powerful accelerators, and they will remain useful for a long time. But the market is not standing still.
 
 Newer accelerators are increasingly designed specifically for AI workloads, with improvements around inference efficiency, memory bandwidth, power consumption, interconnects, and price/performance. This matters because GPUs were not originally designed for AI. They became incredibly useful for AI because the parallel computation model mapped well to deep learning workloads. Now the market is moving toward accelerators that are more explicitly optimised for AI, especially inference workload.
 
@@ -138,6 +138,15 @@ A hybrid pattern gives teams a way to experiment first. Use elastic capacity to 
 
 # Why not keep all GPU infrastructure on-prem?
 
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/gpu-cloud-choice.png"
+    alt="The choice between permanent on-prem GPU infrastructure and elastic cloud capacity"
+    width="800"
+  />
+</figure>
+
 Sometimes you should.
 
 If the workload is highly sensitive, consistently utilised, latency-sensitive, or disconnected, then on-prem GPU infrastructure is the right answer. But not every AI workload is like that. In fact, a lot of early AI platform work is experimental:
@@ -154,6 +163,15 @@ Buying permanent infrastructure before answering those questions can be prematur
 ---
 
 # Why not just use a native cloud AI service?
+
+<figure>
+  {' '}
+  <img
+    src="/static/images/hcp-hybrid-ai/puppet.png"
+    alt="Vendor lock-in versus platform portability"
+    width="800"
+  />
+</figure>
 
 Native cloud AI services can be useful — they're fast to consume and operationally convenient.
 
