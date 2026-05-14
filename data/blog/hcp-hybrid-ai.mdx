@@ -8,7 +8,7 @@ summary: 'A sovereign hybrid AI pattern with OpenShift Hosted Control Planes —
 
 # TL;DR
 
-In a classic OpenShift cluster, the control plane and worker nodes are part of the same cluster footprint.
+In a classic OpenShift Kubernetes cluster, the control plane and worker nodes are part of the same cluster footprint.
 
 With OpenShift Hosted Control Planes, that model changes. The control plane of a hosted cluster runs on a separate management cluster, while the worker nodes run somewhere else.
 
@@ -98,7 +98,7 @@ In my PoC:
 - The hosted control plane runs on that bare-metal cluster.
 - The hosted cluster workers run in AWS, on a dedicated node pool.
 - OpenShift AI GPU workloads run on the hosted cluster, on a dedicated GPU node pool.
-- When I no longer need the GPU capacity, I scale the node pool down to zero — or better, let OpenShift do it automatically.
+- When I no longer need the GPU capacity, I scale the node pool down to zero — or better, let OpenShift [do it automatically](https://developers.redhat.com/articles/2026/02/26/how-hosted-control-planes-are-getting-smarter-about-resource-management).
 
 The expensive and fast-moving part of the environment (the GPU worker capacity) becomes transient, while the local part (the OpenShift control plane, cluster state, lifecycle control, and governance anchor) remains on the bare-metal management cluster.
 
