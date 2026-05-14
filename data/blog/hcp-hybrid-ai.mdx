@@ -34,7 +34,7 @@ The PoC leverages the Hosted Control Plane (HCP) capabilities in OpenShift. This
 
 - Bare-metal OpenShift 4.21 as the management cluster
 - Hosted Control Planes running on that cluster
-- Worker nodes in AWS, including GPU workers consumed by OpenShift AI
+- Worker nodes in AWS, including GPU workers consumed by [OpenShift AI](https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-ai)
 - Manual scaling of the AWS GPU node pool down when finished
 
 This aligns with where HCP is heading: smarter control-plane sizing and autoscaling node pools from and to zero, initially introduced for ROSA with HCP.
@@ -118,7 +118,7 @@ There's another reason I'm cautious about treating GPUs as permanent infrastruct
   />
 </figure>
 
-The current enterprise AI conversation is dominated by high-end GPUs such as H100 and H200. Those are powerful accelerators, and they will remain useful for a long time. But the market is not standing still.
+The current enterprise AI conversation is dominated by high-end GPUs such as [H100](https://www.nvidia.com/en-us/data-center/h100/) and H200. Those are powerful accelerators, and they will remain useful for a long time. But the market is not standing still.
 
 Newer accelerators are increasingly designed specifically for AI workloads, with improvements around inference efficiency, memory bandwidth, power consumption, interconnects, and price/performance. This matters because GPUs were not originally designed for AI. They became incredibly useful for AI because the parallel computation model mapped well to deep learning workloads. Now the market is moving toward accelerators that are more explicitly optimised for AI, especially inference workload.
 
@@ -214,7 +214,7 @@ hcp create cluster aws \
   --etcd-storage-class <management-cluster-storage-class>
 ```
 
-I start with two standard EC2 replicas — enough to deploy operators and workloads. Once the cluster is up and running, it becomes easy to add additional node pools via the Advanced Cluster Management console (ACM), including GPU-capable node pools.
+I start with two standard EC2 replicas — enough to deploy operators and workloads. Once the cluster is up and running, it becomes easy to add additional node pools via the [Advanced Cluster Management](https://www.redhat.com/en/technologies/management/advanced-cluster-management) console (ACM), including GPU-capable node pools.
 
 ---
 
@@ -222,9 +222,9 @@ I start with two standard EC2 replicas — enough to deploy operators and worklo
 
 When connecting on-prem infrastructure with cloud infrastructure, networking becomes a central discussion point.
 
-In an enterprise or government AWS environment, approved private connectivity patterns such as AWS Direct Connect or site-to-site VPN would typically be in place.
+In an enterprise or government AWS environment, approved private connectivity patterns such as [AWS Direct Connect](https://aws.amazon.com/directconnect/) or site-to-site VPN would typically be in place.
 
-For a quick PoC from a home lab, something like Tailscale with subnet routers can bridge on-prem with AWS instances. Be mindful that this is typically not an approved network path at work — but it is a practical way to validate the pattern before investing in production connectivity.
+For a quick PoC from a home lab, something like [Tailscale](https://tailscale.com/) with subnet routers can bridge on-prem with AWS instances. Be mindful that this is typically not an approved network path at work — but it is a practical way to validate the pattern before investing in production connectivity.
 
 From a device connected to the same network the bare-metal OpenShift cluster is running on (in this case `192.168.6.0/24`), create a local subnet router:
 
@@ -291,9 +291,9 @@ Once the hosted cluster is available and the AWS worker node pool is running, th
 The hosted cluster can run:
 
 - OpenShift AI
-- NVIDIA GPU Operator
+- [NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html)
 - Node Feature Discovery
-- GPU-enabled workloads such as vLLM inference services
+- GPU-enabled workloads such as [vLLM](https://docs.vllm.ai/) inference services
 
 The workflow looks like this:
 
